@@ -11,9 +11,9 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="شارژ آپارتمان">
+<meta name="apple-mobile-web-app-title" content="Morteza">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>مدیریت شارژ آپارتمان</title>
+<title>Morteza Management Software</title>
 <style>
 :root{
   --bg:#eef2f7; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
@@ -47,6 +47,10 @@ header.top{
 }
 .top-row{display:flex;align-items:center;gap:10px}
 .top-row h1{font-size:1.02rem;margin:0;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-sub{
+  font-size:.72rem;font-weight:600;opacity:.9;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
 .icon-btn{
   background:rgba(255,255,255,.18);border:0;color:#fff;width:36px;height:36px;border-radius:11px;
   font-size:1rem;cursor:pointer;display:grid;place-items:center;flex:0 0 auto
@@ -179,6 +183,11 @@ tr.total td{font-weight:800;background:var(--bg)}
 .p-sheet{color:#000}
 .p-title{font-size:15px;font-weight:800;margin:0 0 2px}
 .p-sub{font-size:11px;color:#444;margin:0 0 10px}
+.p-brand{
+  font-size:10px;font-weight:700;letter-spacing:.4px;color:#555;
+  border-bottom:1px solid #bbb;padding-bottom:3px;margin-bottom:6px;
+  direction:ltr;text-align:right
+}
 .p-h{font-size:13px;font-weight:800;margin:14px 0 6px;border-bottom:2px solid #000;padding-bottom:3px}
 .p-sheet table{width:100%;border-collapse:collapse;font-size:11px}
 .p-sheet th,.p-sheet td{border:1px solid #333;padding:4px 5px;text-align:center}
@@ -209,9 +218,10 @@ tr.total td{font-weight:800;background:var(--bg)}
 <div class="app">
   <header class="top">
     <div class="top-row">
-      <h1 id="bTitle">مدیریت شارژ آپارتمان</h1>
+      <h1 id="bTitle">Morteza Management Software</h1>
       <button class="icon-btn" id="themeBtn" title="روشن/تیره">🌙</button>
     </div>
+    <div class="top-sub" id="bSub"></div>
     <div class="month-bar">
       <button id="prevM" title="ماه قبل">◀</button>
       <div class="m-label" id="mLabel">—</div>
@@ -485,6 +495,7 @@ function $$(s,r){ return Array.prototype.slice.call((r || document).querySelecto
    ============================================================ */
 var KEY = 'apartment_charge_v2';
 var KEY_OLD = 'apartment_charge_v1';
+var APP_NAME = 'Morteza Management Software';
 var DEFAULT_RATE = 400000;
 var DEFAULT_PERSONS = 2;
 var CAT_DEFAULT = [
@@ -651,7 +662,9 @@ function compute(key){
    رندر
    ============================================================ */
 function renderHeader(){
-  $('#bTitle').textContent = '🏢 ' + (db.building || 'مدیریت شارژ آپارتمان');
+  $('#bTitle').textContent = 'Morteza Management Software';
+  var sub = $('#bSub');
+  if(sub) sub.textContent = '🏢 ' + (db.building || 'مدیریت شارژ آپارتمان');
   $('#mLabel').textContent = J_MONTHS[state.month-1] + ' ' + faDigits(state.year);
   var cur = todayJalali().jy;
   var start = Math.min(cur, state.year) - 3, end = Math.max(cur, state.year) + 3;
@@ -1032,7 +1045,8 @@ function openPrint(){
 function monthSheet(key){
   var p = key.split('-'), jy = num(p[0]), jm = num(p[1]);
   var r = compute(key);
-  var head = '<div class="p-title">' + esc(db.building || 'صورت‌حساب شارژ آپارتمان') + '</div>' +
+  var head = '<div class="p-brand">' + APP_NAME + '</div>' +
+    '<div class="p-title">' + esc(db.building || 'صورت‌حساب شارژ آپارتمان') + '</div>' +
     '<div class="p-sub">صورت‌حساب شارژ ' + J_MONTHS[jm-1] + ' ' + faDigits(jy) +
     ' | نرخ شارژ هر نفر: ' + money(r.rate) + ' ' + esc(db.currency) +
     ' | مهلت پرداخت: ' + faDigits(db.dueDay) + ' ' + J_MONTHS[jm-1] +
@@ -1059,7 +1073,8 @@ function monthSheet(key){
   return '<div class="p-sheet">' + head + ex + pu + note + sign + '</div>';
 }
 function yearSheet(){
-  var head = '<div class="p-title">' + esc(db.building || 'گزارش سالانه شارژ آپارتمان') + '</div>' +
+  var head = '<div class="p-brand">' + APP_NAME + '</div>' +
+    '<div class="p-title">' + esc(db.building || 'گزارش سالانه شارژ آپارتمان') + '</div>' +
     '<div class="p-sub">گزارش ۱۲ ماه سال ' + faDigits(state.year) + ' | تاریخ چاپ: ' + jalaliStamp(new Date()) + '</div>';
   var rows = '', tT = 0, tP = 0;
   for(var m=1; m<=12; m++){
@@ -1097,7 +1112,8 @@ function unitReceipt(u, jy, jm){
   var key = mkey(jy, jm);
   var r = compute(key);
   var s = r.shares[u.id] || 0, pd = r.paid[u.id] || 0;
-  var head = '<div class="p-title">رسید شارژ — ' + esc(u.name) + '</div>' +
+  var head = '<div class="p-brand">' + APP_NAME + '</div>' +
+    '<div class="p-title">رسید شارژ — ' + esc(u.name) + '</div>' +
     '<div class="p-sub">' + esc(db.building || '') + ' | ' + J_MONTHS[jm-1] + ' ' + faDigits(jy) +
     ' | تاریخ چاپ: ' + jalaliStamp(new Date()) + '</div>';
   var t = '<table><tbody>' +
@@ -1620,7 +1636,8 @@ function showWelcome(){
       'display:flex;align-items:center;justify-content:center;padding:16px">' +
       '<div style="background:var(--card);color:var(--ink);border-radius:16px;padding:16px;max-width:440px;width:100%;' +
         'box-shadow:0 20px 50px rgba(0,0,0,.35)">' +
-        '<div style="font-weight:800;font-size:1rem;margin-bottom:8px">🏢 راهنمای سریع</div>' +
+        '<div style="font-weight:800;font-size:1rem;margin-bottom:2px">' + APP_NAME + '</div>' +
+        '<div style="font-size:.74rem;color:var(--muted);margin-bottom:10px">مدیریت شارژ آپارتمان</div>' +
         '<ul style="margin:0 0 12px;padding-inline-start:18px;font-size:.84rem;line-height:2">' +
           '<li>اطلاعات خودکار در همین مرورگر ذخیره می‌شود و به اینترنت نیازی نیست.</li>' +
           '<li>در گوشی: از بخش «تنظیمات ← نصب روی صفحه اصلی گوشی» راهنمای نصب را ببینید.</li>' +

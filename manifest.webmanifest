@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "مدیریت شارژ آپارتمان",
-  "short_name": "شارژ آپارتمان",
+  "name": "Morteza Management Software",
+  "short_name": "Morteza",
   "description": "محاسبه شارژ ماهانه و ثبت هزینه‌های مشاع ساختمان (آسانسور، برق، آب، نظافت، تعمیرات)",
   "lang": "fa",
   "dir": "rtl",
