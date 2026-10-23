@@ -136,6 +136,23 @@ nav.bottom button.on{color:var(--brand)}
 .chip.ok{background:var(--ok-soft);color:var(--ok)}
 .chip.bad{background:var(--bad-soft);color:var(--bad)}
 .chip.warn{background:var(--warn-soft);color:var(--warn)}
+.sw{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.86rem;font-weight:600}
+.sw input{position:absolute;opacity:0;width:0;height:0}
+.sw i{font-style:normal;flex:0 0 auto;width:44px;height:26px;border-radius:99px;background:var(--line);position:relative;transition:.18s}
+.sw i::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.3);transition:.18s}
+.sw input:checked + i{background:var(--brand)}
+.sw input:checked + i::after{transform:translateX(-18px)}
+html[dir="ltr"] .sw input:checked + i::after{transform:translateX(18px)}
+.sw input:focus-visible + i{outline:2px solid var(--brand);outline-offset:2px}
+.bk-list{margin-top:10px;border-top:1px solid var(--line)}
+.bk-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bk-item:last-child{border-bottom:0}
+.bk-item .bk-main{flex:1;min-width:130px}
+.bk-item .bk-main b{display:block;font-size:.82rem;font-weight:700}
+.bk-item .bk-main span{font-size:.7rem;color:var(--muted)}
+.bk-item .btn{width:auto;padding:7px 10px;font-size:.76rem}
+.bk-item .del{width:32px;height:32px;font-size:.85rem}
+.bk-empty{padding:10px 0;font-size:.76rem;color:var(--muted)}
 table{width:100%;border-collapse:collapse;font-size:.82rem}
 th,td{padding:7px 5px;text-align:center;border-bottom:1px solid var(--line)}
 th{font-size:.72rem;color:var(--muted);font-weight:700}
@@ -326,6 +343,36 @@ tr.total td{font-weight:800;background:var(--bg)}
         </div>
         <div class="note" style="margin-top:6px" id="verNote"></div>
       </div>
+      <div class="card" id="autoBkCard">
+        <h2>🔄 پشتیبان خودکار ماهانه <span class="sp" id="autoBkState"></span></h2>
+        <div class="row">
+          <span class="lbl">پشتیبان خودکار<small>ابتدای هر ماه، یک‌بار</small></span>
+          <div class="grow" style="text-align:end">
+            <label class="sw">
+              <input type="checkbox" id="autoBkOn">
+              <i></i>
+              <span id="autoBkOnLbl">خاموش</span>
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <span class="lbl">نگهداری<small>تعداد نسخه‌های آرشیو</small></span>
+          <div style="flex:0 0 92px">
+            <input class="numIn" type="text" inputmode="numeric" id="autoBkKeep" value="۱۲">
+          </div>
+        </div>
+        <div class="btn-grid">
+          <button class="btn sec" id="autoBkNow">📥 گرفتن نسخه پشتیبان همین حالا</button>
+          <button class="btn sec full" id="autoBkAll">💾 ذخیره همه نسخه‌های آرشیو در یک فایل</button>
+        </div>
+        <div class="note" style="margin-top:10px">
+          وقتی این گزینه روشن باشد، در <b>اولین باری که برنامه را در هر ماه باز کنید</b> یک نسخه پشتیبان
+          از کل اطلاعات همان لحظه ساخته و در همین گوشی نگه داشته می‌شود. این نسخه‌ها در فهرست زیر
+          می‌آیند و هر وقت خواستید می‌توانید آن‌ها را در یک فایل ذخیره کنید یا برگردانید.
+        </div>
+        <div class="bk-list" id="autoBkList"></div>
+        <div class="note" id="autoBkNote" style="margin-top:10px"></div>
+      </div>
     </section>
   </div>
   <nav class="bottom">
@@ -468,8 +515,19 @@ function defaultDb(){
 }
 function save(){
   db.updatedAt = new Date().toISOString();
-  try{ localStorage.setItem(KEY, JSON.stringify(db)); }
-  catch(e){ toast('⚠️ ذخیره‌سازی ناموفق بود (حافظه مرورگر)'); }
+  var data = JSON.stringify(db);
+  try{ localStorage.setItem(KEY, data); return; }
+  catch(e){
+    // Out of space. The live data matters far more than old backups, so free
+    // archive entries one by one and retry before giving up.
+    var list = readArchive();
+    while(list.length){
+      list.shift();
+      writeArchive(list);
+      try{ localStorage.setItem(KEY, data); return; }catch(e2){}
+    }
+    toast('⚠️ ذخیره‌سازی ناموفق بود (حافظه مرورگر)');
+  }
 }
 function load(){
   var raw = null;
@@ -697,6 +755,7 @@ function renderUnits(){
   for(var d=1; d<=31; d++) dd += '<option value="' + d + '"' + (num(db.dueDay) === d ? ' selected' : '') + '>' + faDigits(d) + '</option>';
   $('#setDueDay').innerHTML = dd;
   $('#verNote').textContent = 'آخرین ذخیره: ' + jalaliStamp(new Date()) + ' — نسخه ' + (db.version || 1);
+  renderAutoBackup();
 }
 function renderYearly(){
   var rows = '', tTotal = 0, tPaid = 0, perUnit = {};
@@ -1091,6 +1150,254 @@ function tsName(){
   var d = new Date(), p2 = function(x){ return x < 10 ? '0' + x : '' + x; };
   return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
 }
+/* ============================================================
+   پشتیبان خودکار ماهانه
+   هر ماه یک‌بار (اولین اجرا در آن ماه) یک نسخه پشتیبان از کل داده‌ها
+   ساخته و در همین دستگاه آرشیو می‌شود. مستقل از داده اصلی است تا اگر
+   داده اصلی خراب/پاک شد، آرشیو سالم بماند.
+   ============================================================ */
+var BK_KEY = KEY + '_autobk';
+var BK_MAX = 24;
+function autoBkPrefs(){
+  // Default is ON: the feature was requested, so it works out of the box.
+  var p = { on:true, keep:12, last:'' };
+  try{
+    var raw = localStorage.getItem(KEY + '_autobkpref');
+    if(raw){
+      var o = JSON.parse(raw);
+      if(o && typeof o === 'object'){
+        p.on = (o.on === undefined) ? true : (o.on === true);
+        p.keep = Math.min(BK_MAX, Math.max(1, Math.round(num(o.keep) || 12)));
+        p.last = String(o.last || '');
+      }
+    }
+  }catch(e){}
+  return p;
+}
+function saveAutoBkPrefs(p){
+  try{ localStorage.setItem(KEY + '_autobkpref', JSON.stringify(p)); }catch(e){}
+}
+function readArchive(){
+  try{
+    var raw = localStorage.getItem(BK_KEY);
+    if(!raw) return [];
+    var a = JSON.parse(raw);
+    return (a && a.length) ? a : [];
+  }catch(e){ return []; }
+}
+function writeArchive(list){
+  try{
+    localStorage.setItem(BK_KEY, JSON.stringify(list));
+    return true;
+  }catch(e){
+    // Storage is full: drop the oldest entry and try once more.
+    if(list.length > 1){
+      list = list.slice(1);
+      try{ localStorage.setItem(BK_KEY, JSON.stringify(list)); return true; }catch(e2){}
+    }
+    return false;
+  }
+}
+function monthLabel(jy, jm){ return J_MONTHS[jm-1] + ' ' + faDigits(jy); }
+function bkStamp(){
+  var d = new Date(), p2 = function(x){ return x < 10 ? '0' + x : '' + x; };
+  var j = todayJalali();
+  return faDigits(j.jy + '/' + p2(j.jm) + '/' + p2(j.jd)) + ' - ' +
+         faDigits(p2(d.getHours()) + ':' + p2(d.getMinutes()));
+}
+/* Build one snapshot entry, labelled with the month that just ended. */
+function makeBackupEntry(t){
+  var data = JSON.stringify(db);
+  var ended = prevMonthOf(t);
+  var entry = {
+    id: uid('bk'),
+    at: new Date().toISOString(),
+    jy: ended.jy,
+    jm: ended.jm,
+    label: monthLabel(ended.jy, ended.jm),
+    reason: 'auto',
+    building: db.building || '',
+    bytes: data.length,
+    data: data
+  };
+  return entry;
+}
+function pushArchive(entry, keep){
+  var list = readArchive();
+  list.push(entry);
+  var max = Math.min(BK_MAX, Math.max(1, keep || 12));
+  while(list.length > max) list.shift();
+  return writeArchive(list);
+}
+/* The month that ended: if we are in month m, the previous month closed. */
+function prevMonthOf(t){
+  var y = t.jy, m = t.jm - 1;
+  if(m < 1){ m = 12; y--; }
+  return {jy:y, jm:m};
+}
+function autoBackupDue(prefs, t){
+  if(!prefs.on) return false;
+  var cur = mkey(t.jy, t.jm);
+  if(prefs.last === cur) return false;
+  return true;
+}
+function runAutoBackup(force){
+  var prefs = autoBkPrefs();
+  var t = todayJalali();
+  if(!force && !autoBackupDue(prefs, t)) return false;
+  // Nothing worth archiving yet: avoids a junk first-run backup.
+  if(!force && !Object.keys(db.months || {}).length) return false;
+  var entry = makeBackupEntry(t);
+  if(!pushArchive(entry, prefs.keep)) return false;
+  prefs.last = mkey(t.jy, t.jm);
+  saveAutoBkPrefs(prefs);
+  return true;
+}
+function archiveSummary(){
+  var list = readArchive();
+  var total = 0;
+  list.forEach(function(e){ total += (e.bytes || 0); });
+  return {count:list.length, bytes:total};
+}
+function renderAutoBackup(){
+  var prefs = autoBkPrefs();
+  var on = $('#autoBkOn'), lbl = $('#autoBkOnLbl');
+  if(!on) return;
+  on.checked = prefs.on;
+  lbl.textContent = prefs.on ? 'روشن' : 'خاموش';
+  $('#autoBkKeep').value = faDigits(prefs.keep);
+  var list = readArchive();
+  var html = '';
+  for(var i=list.length-1; i>=0; i--){
+    var e = list[i];
+    html += '<div class="bk-item" data-bkid="' + esc(e.id) + '">' +
+      '<div class="bk-main"><b>' + esc(e.label || '—') + '</b>' +
+      '<span>' + esc(bkStampOf(e)) + ' — ' + faDigits(Math.round((e.bytes || 0) / 1024)) + ' کیلوبایت</span></div>' +
+      '<button class="btn sec" data-bkdl="' + esc(e.id) + '">⬇️ فایل</button>' +
+      '<button class="btn sec" data-bkrs="' + esc(e.id) + '">♻️ بازگردانی</button>' +
+      '<button class="del" data-bkdel="' + esc(e.id) + '" title="حذف نسخه">✕</button>' +
+    '</div>';
+  }
+  $('#autoBkList').innerHTML = html ||
+    '<div class="bk-empty">هنوز نسخه پشتیبانی ساخته نشده است.</div>';
+  var sum = archiveSummary();
+  var st = $('#autoBkState');
+  if(st) st.textContent = sum.count ? faDigits(sum.count) + ' نسخه' : '';
+  var note = $('#autoBkNote');
+  if(note){
+    var txt;
+    if(!prefs.on){
+      txt = 'پشتیبان خودکار خاموش است.';
+    } else if(prefs.last){
+      txt = 'آخرین پشتیبان خودکار: ' + bkStampLast(prefs.last) + ' — پشتیبان بعدی در ابتدای ماه آینده.';
+    } else {
+      txt = 'پشتیبان خودکار روشن شد؛ در اولین باز کردن برنامه در هر ماه یک نسخه ساخته می‌شود.';
+    }
+    note.textContent = txt;
+  }
+}
+function bkStampOf(e){
+  if(!e || !e.at) return '—';
+  try{
+    var d = new Date(e.at), p2 = function(x){ return x < 10 ? '0' + x : '' + x; };
+    var j = d2j(g2d(d.getFullYear(), d.getMonth()+1, d.getDate()));
+    return faDigits(j.jy + '/' + p2(j.jm) + '/' + p2(j.jd)) + ' - ' + faDigits(p2(d.getHours()) + ':' + p2(d.getMinutes()));
+  }catch(err){ return '—'; }
+}
+function bkStampLast(key){
+  var p = String(key || '').split('-');
+  if(p.length < 2) return '—';
+  return monthLabel(num(p[0]), num(p[1]));
+}
+function restoreArchiveEntry(id){
+  var list = readArchive();
+  var e = list.filter(function(x){ return x.id === id; })[0];
+  if(!e){ toast('نسخه پیدا نشد'); return; }
+  if(!confirm('اطلاعات فعلی با نسخه «' + (e.label || '') + '» جایگزین شود؟')) return;
+  try{
+    var p = JSON.parse(e.data);
+    if(!p || !p.units || !p.categories) throw new Error('ساختار نامعتبر');
+    db = p; normalize(); save(); renderAll(); setView('settings');
+    toast('بازگردانی از نسخه ' + (e.label || '') + ' انجام شد');
+  }catch(err){ alert('خطا در بازگردانی: ' + err.message); }
+}
+function bindAutoBackup(){
+  if(!$('#autoBkOn')) return;
+  $('#autoBkOn').addEventListener('change', function(){
+    var prefs = autoBkPrefs();
+    prefs.on = this.checked;
+    saveAutoBkPrefs(prefs);
+    if(prefs.on){
+      var made = runAutoBackup(false);
+      toast(made ? 'پشتیبان خودکار روشن شد و یک نسخه گرفته شد' : 'پشتیبان خودکار روشن شد');
+    } else {
+      toast('پشتیبان خودکار خاموش شد');
+    }
+    renderAutoBackup();
+  });
+  $('#autoBkKeep').addEventListener('change', function(){
+    var prefs = autoBkPrefs();
+    prefs.keep = Math.min(BK_MAX, Math.max(1, Math.round(num(this.value) || 12)));
+    saveAutoBkPrefs(prefs);
+    this.value = faDigits(prefs.keep);
+    var list = readArchive();
+    while(list.length > prefs.keep) list.shift();
+    writeArchive(list);
+    renderAutoBackup();
+    toast('تعداد نسخه‌های نگهداری: ' + faDigits(prefs.keep));
+  });
+  $('#autoBkNow').addEventListener('click', function(){
+    var t = todayJalali();
+    var prefs = autoBkPrefs();
+    var entry = makeBackupEntry(t);
+    if(pushArchive(entry, prefs.keep)){
+      download('apartment-backup-' + tsName() + '.json', entry.data, 'application/json');
+      toast('نسخه پشتیبان گرفته و دانلود شد');
+    } else {
+      toast('⚠️ حافظه مرورگر پر است');
+    }
+    renderAutoBackup();
+  });
+  $('#autoBkAll').addEventListener('click', function(){
+    var list = readArchive();
+    if(!list.length){ toast('نسخه‌ای برای ذخیره وجود ندارد'); return; }
+    download('apartment-archive-' + tsName() + '.json', JSON.stringify(list, null, 2), 'application/json');
+    toast('فایل آرشیو ' + faDigits(list.length) + ' نسخه‌ای دانلود شد');
+  });
+  $('#autoBkList').addEventListener('click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('button') : null;
+    if(!b) return;
+    var list = readArchive();
+    if(b.dataset.bkdl){
+      var e = list.filter(function(x){ return x.id === b.dataset.bkdl; })[0];
+      if(!e) return;
+      download('apartment-backup-' + (e.label || 'bk').replace(/\s+/g, '-') + '.json', e.data, 'application/json');
+      toast('فایل نسخه پشتیبان دانلود شد');
+      return;
+    }
+    if(b.dataset.bkrs){ restoreArchiveEntry(b.dataset.bkrs); return; }
+    if(b.dataset.bkdel){
+      var id = b.dataset.bkdel;
+      if(!confirm('این نسخه پشتیبان حذف شود؟')) return;
+      writeArchive(list.filter(function(x){ return x.id !== id; }));
+      renderAutoBackup();
+      toast('نسخه حذف شد');
+    }
+  });
+  // The app may stay open across a month boundary, so also check when it
+  // regains focus and on a slow interval while it is open.
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible'){
+      if(runAutoBackup(false)){ renderAutoBackup(); toast('پشتیبان خودکار ماهانه گرفته شد'); }
+    }
+  });
+  setInterval(function(){
+    if(document.visibilityState === 'visible'){
+      if(runAutoBackup(false)){ renderAutoBackup(); toast('پشتیبان خودکار ماهانه گرفته شد'); }
+    }
+  }, 6 * 60 * 60 * 1000);
+  renderAutoBackup();
+}
 function csvEscape(v){ return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
 function bindBackup(){
   $('#expJson').addEventListener('click', function(){
@@ -1287,6 +1594,11 @@ function boot(){
   var t = todayJalali();
   state.year = t.jy; state.month = t.jm;
   bindChrome(); bindAmounts(); bindUnits(); bindPrint(); bindBackup(); bindInstall();
+  bindAutoBackup();
+  if(runAutoBackup(false)){
+    renderAutoBackup();
+    toast('پشتیبان خودکار ماهانه گرفته شد');
+  }
   var th = null;
   try{ th = localStorage.getItem(KEY + '_theme'); }catch(e){}
   if(!th) th = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
@@ -1313,7 +1625,8 @@ function showWelcome(){
           '<li>اطلاعات خودکار در همین مرورگر ذخیره می‌شود و به اینترنت نیازی نیست.</li>' +
           '<li>در گوشی: از بخش «تنظیمات ← نصب روی صفحه اصلی گوشی» راهنمای نصب را ببینید.</li>' +
           '<li>خروجی PDF/اکسل و پشتیبان‌گیری از بخش «گزارش سال» و «تنظیمات» در دسترس است.</li>' +
-          '<li>هر ماه یک‌بار «خروجی فایل پشتیبان» بگیرید.</li>' +
+          '<li>در ابتدای هر ماه، یک نسخه پشتیبان خودکار ساخته می‌شود (تنظیمات ← پشتیبان خودکار ماهانه).</li>' +
+          '<li>برای اطمینان بیشتر، هر ماه یک‌بار «خروجی فایل پشتیبان» هم بگیرید.</li>' +
         '</ul>' +
         '<button class="btn" id="welcomeOk">متوجه شدم</button>' +
       '</div></div>';
