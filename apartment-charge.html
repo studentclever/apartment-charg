@@ -157,6 +157,25 @@ html[dir="ltr"] .sw input:checked + i::after{transform:translateX(18px)}
 .bk-item .btn{width:auto;padding:7px 10px;font-size:.76rem}
 .bk-item .del{width:32px;height:32px;font-size:.85rem}
 .bk-empty{padding:10px 0;font-size:.76rem;color:var(--muted)}
+.exp-block{padding:9px 0;border-bottom:1px solid var(--line)}
+.exp-block:last-child{border-bottom:0}
+.exp-head{display:flex;align-items:center;gap:8px}
+.exp-head .lbl{font-size:.88rem;font-weight:700;flex:1}
+.exp-sum{
+  font-size:.8rem;font-weight:800;color:var(--muted);direction:ltr;
+  padding:2px 8px;border-radius:99px;background:var(--bg)
+}
+.exp-block.has-exp .exp-sum{background:var(--brand-soft);color:var(--brand)}
+.exp-row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.exp-row .exp-amt{flex:0 0 116px}
+.exp-row .exp-note{flex:1;min-width:80px}
+.exp-row .del{width:34px;height:38px}
+.exp-row input{padding:8px 9px;font-size:15px}
+@media (max-width:359px){
+  .exp-row{flex-wrap:wrap}
+  .exp-row .exp-amt{flex:1 1 116px}
+  .exp-row .exp-note{flex:1 1 100%;order:3}
+}
 table{width:100%;border-collapse:collapse;font-size:.82rem}
 th,td{padding:7px 5px;text-align:center;border-bottom:1px solid var(--line)}
 th{font-size:.72rem;color:var(--muted);font-weight:700}
@@ -595,12 +614,56 @@ function normalize(){
     m.persons = m.persons || {};
     m.note = m.note || '';
     if(m.rate != null && !isFinite(num(m.rate))) m.rate = null;
+    // ارتقای هزینه‌های قدیمی (یک عدد) به فهرست ردیف‌ها
+    Object.keys(m.expenses).forEach(function(cid){
+      // ردیف‌هایی که نه مبلغ دارند و نه شرح، دور ریخته می‌شوند. این کار فقط
+      // هنگام بارگذاری انجام می‌شود تا وسط کار کاربر ردیف تازه‌اش پاک نشود.
+      var list = expItems(m, cid).filter(function(it){
+        return num(it.amount) !== 0 || String(it.note || '').trim() !== '';
+      });
+      if(!list.length) { delete m.expenses[cid]; return; }
+      m.expenses[cid] = list.map(function(it){
+        return {id: it.id || uid('ex'), amount: num(it.amount), note: String(it.note || '')};
+      });
+    });
   });
 }
 
 /* ============================================================
    موتور محاسبه
    ============================================================ */
+/* هر هزینه مشاع می‌تواند چند ردیف داشته باشد (مثلاً تعمیرات در چند مرحله).
+   ردیف‌ها اینجا نگه داشته می‌شوند و جمعشان خودکار حساب می‌شود. */
+function isArr(v){ return Object.prototype.toString.call(v) === '[object Array]'; }
+function expItems(m, cid){
+  if(!m || !m.expenses) return [];
+  var v = m.expenses[cid];
+  if(v == null || v === '') return [];
+  if(isArr(v)) return v;
+  // سازگاری با داده قدیمی که فقط یک عدد بود
+  return [{id:'legacy_' + cid, amount:num(v), note:''}];
+}
+function expTotal(m, cid){
+  var list = expItems(m, cid), s = 0;
+  list.forEach(function(it){ s += num(it.amount); });
+  return s;
+}
+function expItem(m, cid, eid, create){
+  var list = expItems(m, cid);
+  for(var i=0;i<list.length;i++){ if(list[i].id === eid) return list[i]; }
+  if(!create) return null;
+  var it = {id: eid || uid('ex'), amount:0, note:''};
+  list.push(it);
+  m.expenses[cid] = list;
+  return it;
+}
+function expDropEmpty(m, cid){
+  var list = expItems(m, cid).filter(function(it){
+    return num(it.amount) !== 0 || String(it.note || '').trim() !== '';
+  });
+  if(list.length) m.expenses[cid] = list;
+  else delete m.expenses[cid];
+}
 function monthData(key, create){
   if(!db.months[key]){
     if(!create) return {expenses:{}, payments:{}, persons:{}, rate:null, note:''};
@@ -639,8 +702,12 @@ function compute(key){
     personsTotal += p;
     shares[u.id] = p * rate;
   });
+  var expItemsByCat = {};
   db.categories.forEach(function(c){
-    var amt = num(m.expenses[c.id]);
+    var list = expItems(m, c.id);
+    expItemsByCat[c.id] = list;
+    var amt = 0;
+    list.forEach(function(it){ amt += num(it.amount); });
     catTotals[c.id] = amt;
     expensesTotal += amt;
   });
@@ -654,7 +721,7 @@ function compute(key){
   return {
     key:key, m:m, catTotals:catTotals, total:total, shares:shares, paid:paid,
     paidTotal:paidTotal, due:total - paidTotal, rate:rate, persons:persons,
-    personsTotal:personsTotal, expensesTotal:expensesTotal
+    personsTotal:personsTotal, expensesTotal:expensesTotal, expItems:expItemsByCat
   };
 }
 
@@ -688,11 +755,14 @@ function renderMonthly(){
   var m = monthData(key, false);
   var html = '';
   db.categories.forEach(function(c){
-    var v = num(m.expenses[c.id]);
-    html += '<div class="row">' +
-      '<span class="lbl">' + esc(c.icon) + ' ' + esc(c.name) + '</span>' +
-      '<div class="grow"><input class="amt" type="text" inputmode="numeric" data-cat="' + esc(c.id) + '" ' +
-        'value="' + (v ? group(v) : '') + '" placeholder="0"></div>' +
+    var total = expTotal(m, c.id);
+    html += '<div class="exp-block" data-expblock="' + esc(c.id) + '">' +
+      '<div class="exp-head">' +
+        '<span class="lbl">' + esc(c.icon) + ' ' + esc(c.name) + '</span>' +
+        '<span class="exp-sum" data-expsum="' + esc(c.id) + '">' + money(total) + '</span>' +
+      '</div>' +
+      '<div class="exp-rows" data-exprows="' + esc(c.id) + '">' + expRowsHtml(c.id, m) + '</div>' +
+      '<button class="btn sec sm full" data-expadd="' + esc(c.id) + '" style="margin-top:6px">➕ افزودن ردیف</button>' +
     '</div>';
   });
   $('#expenseList').innerHTML = html || '<div class="note">هنوز هزینه‌ای تعریف نشده است.</div>';
@@ -715,6 +785,29 @@ function renderMonthly(){
   $('#mNote').value = m.note || '';
   refreshNumbers();
 }
+/* یک ردیف هزینه: مبلغ + شرح، با دکمه حذف. */
+function expRowHtml(cid, it){
+  var eid = esc(it.id), c = esc(cid);
+  return '<div class="exp-row" data-exprow="' + eid + '">' +
+    '<div class="exp-amt"><input class="amt" type="text" inputmode="numeric" ' +
+      'data-examt="' + c + '" data-exid="' + eid + '" ' +
+      'value="' + (num(it.amount) ? group(num(it.amount)) : '') + '" placeholder="مبلغ" title="مبلغ"></div>' +
+    '<div class="exp-note"><input type="text" ' +
+      'data-exnote="' + c + '" data-exid="' + eid + '" ' +
+      'value="' + esc(it.note || '') + '" placeholder="شرح (مثلاً مرحله ۱ تعمیر)"></div>' +
+    '<button class="del" data-exdel="' + c + '" data-exid="' + eid + '" title="حذف این ردیف">✕</button>' +
+  '</div>';
+}
+function expRowsHtml(cid, m){
+  var list = expItems(m, cid);
+  if(!list.length) return '';
+  var out = '';
+  list.forEach(function(it){
+    if(!it.id) it.id = uid('ex');
+    out += expRowHtml(cid, it);
+  });
+  return out;
+}
 function refreshNumbers(){
   var key = currentKey();
   var r = compute(key);
@@ -722,7 +815,16 @@ function refreshNumbers(){
   $('#sumPersons').textContent = faDigits(r.personsTotal);
   $('#sumPaid').textContent = money(r.paidTotal);
   $('#sumDue').textContent = money(Math.max(0, r.due));
-  $('#expHint').textContent = 'جمع: ' + money(r.total) + ' ' + db.currency;
+  $('#expHint').textContent = 'جمع هزینه‌ها: ' + money(r.expensesTotal) + ' ' + db.currency;
+  db.categories.forEach(function(c){
+    var el = $('[data-expsum="' + c.id + '"]');
+    if(el){
+      var t = r.catTotals[c.id] || 0;
+      el.textContent = money(t);
+      var block = $('[data-expblock="' + c.id + '"]');
+      if(block) block.classList.toggle('has-exp', t > 0);
+    }
+  });
   var cmp = $('#sumCompare');
   if(cmp){
     var diff = r.expensesTotal - r.total;
@@ -891,21 +993,35 @@ function bindChrome(){
 function bindAmounts(){
   document.addEventListener('input', function(e){
     var el = e.target;
-    if(!el.classList || !el.classList.contains('amt')) return;
-    var v = num(el.value);
+    if(!el.dataset) return;
     var m = monthData(currentKey(), true);
-    if(el.dataset.cat != null) m.expenses[el.dataset.cat] = v;
-    else if(el.dataset.paid != null) m.payments[el.dataset.paid] = v;
+    if(el.dataset.examt != null){
+      var it = expItem(m, el.dataset.examt, el.dataset.exid, true);
+      if(it) it.amount = num(el.value);
+      refreshNumbers();
+      return;
+    }
+    if(el.dataset.exnote != null){
+      var it2 = expItem(m, el.dataset.exnote, el.dataset.exid, true);
+      if(it2) it2.note = el.value;
+      return;
+    }
+    if(!el.classList || !el.classList.contains('amt')) return;
+    if(el.dataset.paid != null) m.payments[el.dataset.paid] = num(el.value);
     refreshNumbers();
   }, true);
   document.addEventListener('blur', function(e){
     var el = e.target;
-    if(!el.classList || !el.classList.contains('amt')) return;
-    var v = num(el.value);
-    el.value = v ? group(v) : '';
-    save();
-    refreshNumbers();
-    renderYearly();
+    if(!el.dataset) return;
+    if(el.dataset.examt != null || el.dataset.exnote != null || (el.classList && el.classList.contains('amt'))){
+      if(el.dataset.examt != null){
+        var v0 = num(el.value);
+        el.value = v0 ? group(v0) : '';
+      }
+      save();
+      refreshNumbers();
+      renderYearly();
+    }
   }, true);
   var rate = $('#rateInput');
   rate.addEventListener('input', function(){
@@ -1007,6 +1123,34 @@ function bindUnits(){
       toast('نوع هزینه حذف شد');
       return;
     }
+    var addBtn = e.target.closest ? e.target.closest('[data-expadd]') : null;
+    if(addBtn){
+      var acid = addBtn.dataset.expadd;
+      var mm = monthData(currentKey(), true);
+      var list = expItems(mm, acid);
+      list.push({id: uid('ex'), amount: 0, note: ''});
+      mm.expenses[acid] = list;
+      var box = $('[data-exprows="' + acid + '"]');
+      if(box){ box.innerHTML = expRowsHtml(acid, mm); }
+      var last = box ? box.querySelector('.exp-row:last-child input') : null;
+      if(last) last.focus();
+      refreshNumbers();
+      return;
+    }
+    var delRow = e.target.closest ? e.target.closest('[data-exdel]') : null;
+    if(delRow){
+      var dcid = delRow.dataset.exdel, deid = delRow.dataset.exid;
+      var dm = monthData(currentKey(), true);
+      var dlist = expItems(dm, dcid).filter(function(it){ return it.id !== deid; });
+      if(dlist.length) dm.expenses[dcid] = dlist;
+      else delete dm.expenses[dcid];
+      var row = delRow.closest ? delRow.closest('.exp-row') : null;
+      if(row) row.remove();
+      save();
+      refreshNumbers();
+      renderYearly();
+      return;
+    }
     var tr = e.target.closest ? e.target.closest('[data-jump]') : null;
     if(tr){ gotoMonth(state.year, num(tr.dataset.jump)); setView('monthly'); }
   });
@@ -1054,7 +1198,17 @@ function monthSheet(key){
   var ex = '<div class="p-h">۱) دفتر هزینه‌های مشاع ماه</div>' +
     '<table><thead><tr><th style="width:55%">شرح هزینه</th><th>مبلغ (' + esc(db.currency) + ')</th></tr></thead><tbody>';
   db.categories.forEach(function(c){
-    ex += '<tr><td style="text-align:right">' + esc(c.name) + '</td><td class="num">' + money(num(r.m.expenses[c.id])) + '</td></tr>';
+    var list = (r.expItems && r.expItems[c.id]) || [];
+    var total = r.catTotals[c.id] || 0;
+    if(!list.length && !total) return;
+    ex += '<tr><td style="text-align:right">' + esc(c.name) + '</td><td class="num">' + money(total) + '</td></tr>';
+    if(list.length > 1){
+      list.forEach(function(it){
+        ex += '<tr><td style="text-align:right;padding-inline-end:18px;font-size:10px">' +
+          '↳ ' + esc(it.note || 'ردیف') + '</td><td class="num" style="font-size:10px">' +
+          money(num(it.amount)) + '</td></tr>';
+      });
+    }
   });
   ex += '</tbody><tfoot><tr><td>جمع هزینه‌های ثبت‌شده</td><td class="num">' + money(r.expensesTotal) + '</td></tr></tfoot></table>';
   var pu = '<div class="p-h">۲) شارژ و وضعیت پرداخت واحدها</div>' +
@@ -1125,7 +1279,17 @@ function unitReceipt(u, jy, jm){
     '</tbody></table>';
   var rows = '<div class="p-h">ریز هزینه‌های مشاع ماه (فقط جهت اطلاع)</div><table><thead><tr><th>شرح</th><th>مبلغ کل</th></tr></thead><tbody>';
   db.categories.forEach(function(c){
-    rows += '<tr><td style="text-align:right">' + esc(c.name) + '</td><td class="num">' + money(num(r.m.expenses[c.id])) + '</td></tr>';
+    var list = (r.expItems && r.expItems[c.id]) || [];
+    var total = r.catTotals[c.id] || 0;
+    if(!list.length && !total) return;
+    rows += '<tr><td style="text-align:right">' + esc(c.name) + '</td><td class="num">' + money(total) + '</td></tr>';
+    if(list.length > 1){
+      list.forEach(function(it){
+        rows += '<tr><td style="text-align:right;padding-inline-end:18px;font-size:10px">' +
+          '↳ ' + esc(it.note || 'ردیف') + '</td><td class="num" style="font-size:10px">' +
+          money(num(it.amount)) + '</td></tr>';
+      });
+    }
   });
   rows += '</tbody><tfoot><tr><td>جمع هزینه‌ها</td><td class="num">' + money(r.expensesTotal) + '</td></tr></tfoot></table>';
   var sign = '<div class="p-sign"><div>امضای مدیر ساختمان</div><div>امضای ساکن</div></div>';
@@ -1463,10 +1627,21 @@ function bindBackup(){
   $('#demo').addEventListener('click', function(){
     if(!confirm('اعداد نمونه در ماه جاری درج شود؟')) return;
     var m = monthData(currentKey(), true);
-    var sample = {elevator:2500000, electricity:1800000, water:900000, cleaning:3200000, repairs:1500000};
-    db.categories.forEach(function(c){ if(sample[c.id] != null) m.expenses[c.id] = sample[c.id]; });
+    var sample = {
+      elevator:[{amount:2500000, note:'سرویس ماهانه'}],
+      electricity:[{amount:1800000, note:'قبض مشاع'}],
+      water:[{amount:900000, note:'قبض مشاع'}],
+      cleaning:[{amount:3200000, note:'نظافت ماه'}],
+      repairs:[{amount:900000, note:'تعمیر درب پارکینگ'}, {amount:600000, note:'تعویض لامپ راه‌پله'}]
+    };
+    db.categories.forEach(function(c){
+      if(sample[c.id] == null) return;
+      m.expenses[c.id] = sample[c.id].map(function(it){
+        return {id: uid('ex'), amount: it.amount, note: it.note};
+      });
+    });
     save(); renderAll();
-    toast('اعداد نمونه درج شد');
+    toast('اعداد نمونه درج شد (تعمیرات دو ردیف دارد)');
   });
   $('#prune').addEventListener('click', function(){
     var t = todayJalali();
