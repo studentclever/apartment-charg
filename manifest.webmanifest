@@ -1,0 +1,49 @@
+{
+  "id": "./",
+  "name": "مدیریت شارژ آپارتمان",
+  "short_name": "شارژ آپارتمان",
+  "description": "محاسبه شارژ ماهانه و ثبت هزینه‌های مشاع ساختمان (آسانسور، برق، آب، نظافت، تعمیرات)",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./apartment-charge.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait-primary",
+  "background_color": "#eef2f7",
+  "theme_color": "#1d4ed8",
+  "categories": [
+    "finance",
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

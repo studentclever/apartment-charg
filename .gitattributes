@@ -1,0 +1,4 @@
+# Keep the shipped files byte-identical to what was tested on the phone.
+# These files carry a UTF-8 BOM and CRLF line endings; git must not rewrite them.
+* -text
+*.png binary
