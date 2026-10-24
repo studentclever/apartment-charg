@@ -11,9 +11,9 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Morteza">
+<meta name="apple-mobile-web-app-title" content="پلاک ۸">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Morteza Management Software</title>
+<title>نرم‌افزار آپارتمان پلاک ۸</title>
 <style>
 :root{
   --bg:#eef2f7; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
@@ -62,10 +62,11 @@ header.top{
   font-size:1rem;cursor:pointer;font-family:inherit
 }
 .month-bar button:active{background:rgba(255,255,255,.34)}
-.month-bar .m-label{flex:1;text-align:center;font-weight:700;font-size:1rem}
+.month-bar .m-label{flex:1;text-align:center;font-weight:700;font-size:1rem;white-space:nowrap}
 .month-bar select{
   background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.28);
-  border-radius:10px;padding:8px 6px;font-family:inherit;font-size:16px;font-weight:600;text-align:center
+  border-radius:10px;padding:8px 6px;font-family:inherit;font-size:16px;font-weight:600;text-align:center;
+  width:auto;flex:0 0 auto
 }
 .month-bar select option{color:#0f172a}
 .card{background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:10px;box-shadow:var(--shadow)}
@@ -82,6 +83,7 @@ header.top{
 .stat.brand b{color:var(--brand)}
 .stat.ok b{color:var(--ok)}
 .stat.bad b{color:var(--bad)}
+.stat.warn b{color:var(--warn)}
 .fund-bar{
   margin-top:8px;padding:10px 12px;border-radius:11px;
   background:var(--bg);border:1.5px solid var(--line)
@@ -115,6 +117,7 @@ header.top{
 .row .lbl small{display:block;color:var(--muted);font-weight:500;font-size:.7rem}
 .row .grow{flex:1;min-width:110px}
 .row .cell{min-width:80px;text-align:center;font-weight:700;font-size:.86rem}
+.row .cell small{display:block;color:var(--muted);font-weight:500;font-size:.64rem;margin-top:1px}
 input[type=text],input[type=number],select,textarea{
   font-family:inherit;font-size:16px;color:var(--ink);background:var(--bg);
   border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;width:100%
@@ -233,7 +236,7 @@ tr.total td{font-weight:800;background:var(--bg)}
 .p-brand{
   font-size:10px;font-weight:700;letter-spacing:.4px;color:#555;
   border-bottom:1px solid #bbb;padding-bottom:3px;margin-bottom:6px;
-  direction:ltr;text-align:right
+  direction:rtl;text-align:right
 }
 .p-h{font-size:13px;font-weight:800;margin:14px 0 6px;border-bottom:2px solid #000;padding-bottom:3px}
 .p-sheet table{width:100%;border-collapse:collapse;font-size:11px}
@@ -252,17 +255,21 @@ tr.total td{font-weight:800;background:var(--bg)}
   #yearTable th,#yearTable td{padding:6px 2px}
 }
 @media (max-width:560px){
-  /* ستون ۶ «مانده» و ستون ۸ «وضعیت» پنهان می‌شوند؛ ستون ۷ «صندوق» همیشه می‌ماند. */
-  #yearTable th:nth-child(6),#yearTable td:nth-child(6),
-  #yearTable th:nth-child(8),#yearTable td:nth-child(8),
-  #yearUnitTable th:nth-child(5),#yearUnitTable td:nth-child(5){display:none}
+  /* ستون‌های ۲ «نرخ»، ۳ «نفرات»، ۵ «مانده قبل» و ۹ «وضعیت» پنهان می‌شوند؛
+     «مانده» (ستون ۷) و «صندوق» (ستون ۸) همیشه می‌مانند. */
+  #yearTable th:nth-child(2),#yearTable td:nth-child(2),
+  #yearTable th:nth-child(3),#yearTable td:nth-child(3),
+  #yearTable th:nth-child(5),#yearTable td:nth-child(5),
+  #yearTable th:nth-child(9),#yearTable td:nth-child(9),
+  #yearUnitTable th:nth-child(2),#yearUnitTable td:nth-child(2){display:none}
+  #yearUnitTable{font-size:.74rem}
+  #yearUnitTable th,#yearUnitTable td{padding:6px 2px}
+  #yearUnitTable td:first-child{white-space:nowrap}
 }
 @media (max-width:340px){
   #yearTable{font-size:.64rem}
   #yearTable th,#yearTable td{padding:5px 1px}
-  /* در گوشی‌های بسیار باریک، نرخ و نفرات هم کنار می‌روند تا صندوق جا شود. */
-  #yearTable th:nth-child(2),#yearTable td:nth-child(2),
-  #yearTable th:nth-child(3),#yearTable td:nth-child(3){display:none}
+  #yearUnitTable{font-size:.68rem}
 }
 @media (max-width:399px){
   .p-sheet th,.p-sheet td{padding:3px 3px}
@@ -273,7 +280,7 @@ tr.total td{font-weight:800;background:var(--bg)}
 <div class="app">
   <header class="top">
     <div class="top-row">
-      <h1 id="bTitle">Morteza Management Software</h1>
+      <h1 id="bTitle">نرم‌افزار آپارتمان پلاک ۸</h1>
       <button class="icon-btn" id="themeBtn" title="روشن/تیره">🌙</button>
     </div>
     <div class="top-sub" id="bSub"></div>
@@ -301,6 +308,8 @@ tr.total td{font-weight:800;background:var(--bg)}
         <div class="stats">
           <div class="stat brand"><b id="sumTotal">۰</b><span>جمع شارژ ماه</span></div>
           <div class="stat"><b id="sumPersons">۰</b><span>تعداد نفرات ساکن</span></div>
+          <div class="stat warn"><b id="sumPrev">۰</b><span id="sumPrevLbl">مانده از ماه‌های قبل</span></div>
+          <div class="stat"><b id="sumPayable">۰</b><span>جمع قابل وصول این ماه</span></div>
           <div class="stat ok"><b id="sumPaid">۰</b><span>جمع وصول‌شده</span></div>
           <div class="stat bad"><b id="sumDue">۰</b><span>مانده وصول‌نشده</span></div>
         </div>
@@ -370,6 +379,16 @@ tr.total td{font-weight:800;background:var(--bg)}
           «تعداد نفرات × نرخ شارژ هر نفر». تغییر این جدول روی همه ماه‌ها اثر می‌گذارد؛
           اگر فقط یک ماه خاص نفراتش فرق دارد، همان ماه را باز کنید و در فهرست پرداختی‌ها ویرایش کنید.
         </div>
+      </div>
+      <div class="card">
+        <h2>📒 مانده قبلی واحدها <span class="sp">بدهی / بستانکاری از قبل</span></h2>
+        <div id="openBalList"></div>
+        <div class="note" style="margin-top:8px">
+          اگر واحدی پیش از شروع ثبت در این برنامه بدهی (مثلاً چند ماه شارژ پرداخت‌نشده) یا
+          بستانکاری (پیش‌پرداخت) داشته، همین‌جا وارد کنید. این مبلغ به شارژ اولین ماه ثبت‌شده
+          اضافه می‌شود و از آن به بعد، مانده هر ماه خودکار به ماه بعد منتقل می‌شود.
+        </div>
+        <div class="note" id="carryNote" style="margin-top:6px"></div>
       </div>
       <div class="card">
         <h2>📇 مشخصات ساختمان</h2>
@@ -551,7 +570,7 @@ function group(n){
 function money(n){ return faDigits(group(n)); }
 function num(v){
   if(typeof v === 'number') return isFinite(v) ? v : 0;
-  var s = enDigits(v).replace(/[,\u066C\u00A0\s]/g, '').replace(/[^\d.\-]/g, '');
+  var s = enDigits(v).replace(/[\u2212\u2012\u2013\u2014]/g, '-').replace(/[,\u066C\u00A0\s]/g, '').replace(/[^\d.\-]/g, '');
   var x = parseFloat(s);
   return isNaN(x) ? 0 : x;
 }
@@ -569,7 +588,9 @@ function $$(s,r){ return Array.prototype.slice.call((r || document).querySelecto
    ============================================================ */
 var KEY = 'apartment_charge_v2';
 var KEY_OLD = 'apartment_charge_v1';
-var APP_NAME = 'Morteza Management Software';
+var APP_NAME = 'نرم‌افزار آپارتمان پلاک ۸';
+var DEFAULT_BUILDING = 'آپارتمان پلاک ۸';
+var OLD_DEFAULT_BUILDING = 'آپارتمان مسکونی';
 var DEFAULT_RATE = 400000;
 var DEFAULT_PERSONS = 2;
 var CAT_DEFAULT = [
@@ -585,10 +606,10 @@ var state = {view:'monthly', year:0, month:1};
 function uid(p){ return p + '_' + Math.random().toString(36).slice(2,8); }
 function defaultDb(){
   var units = [];
-  for(var i=1;i<=10;i++) units.push({id:'u'+i, name:'واحد ' + faDigits(i), owner:'', persons:DEFAULT_PERSONS});
+  for(var i=1;i<=10;i++) units.push({id:'u'+i, name:'واحد ' + faDigits(i), owner:'', persons:DEFAULT_PERSONS, openBal:0});
   return {
-    version:2,
-    building:'آپارتمان مسکونی',
+    version:3,
+    building:DEFAULT_BUILDING,
     currency:'تومان',
     rate:DEFAULT_RATE,
     fundOpen:0,
@@ -648,7 +669,10 @@ function normalize(){
   db.units = db.units || [];
   db.categories = db.categories || JSON.parse(JSON.stringify(CAT_DEFAULT));
   db.months = db.months || {};
-  db.building = db.building || 'آپارتمان مسکونی';
+  db.building = db.building || DEFAULT_BUILDING;
+  if(db.building === OLD_DEFAULT_BUILDING) db.building = DEFAULT_BUILDING;
+  if(!db.version || db.version < 3) db.version = 3;
+  if(db.carryStart != null && !/^1[3-6]\d\d-(0[1-9]|1[0-2])$/.test(String(db.carryStart))) delete db.carryStart;
   db.currency = db.currency || 'تومان';
   db.rate = (db.rate == null || db.rate === '' || !isFinite(num(db.rate))) ? DEFAULT_RATE : Math.max(0, num(db.rate));
   db.fundOpen = (db.fundOpen == null || !isFinite(num(db.fundOpen))) ? 0 : num(db.fundOpen);
@@ -656,6 +680,7 @@ function normalize(){
   db.units.forEach(function(u){
     u.id = u.id || uid('u');
     u.owner = u.owner || '';
+    u.openBal = isFinite(num(u.openBal)) ? Math.round(num(u.openBal)) : 0;
     u.persons = (u.persons == null || !isFinite(num(u.persons))) ? DEFAULT_PERSONS : Math.max(0, Math.round(num(u.persons)));
     delete u.coeff;
   });
@@ -781,7 +806,7 @@ function fundOf(key){
   if(to < from) return fundOpenGet();
   var sum = fundOpenGet();
   for(var i = from; i <= to; i++){
-    var r = compute(keyFromIndex(i));
+    var r = compute(keyFromIndex(i), true);
     sum += (r.paidTotal - r.expensesTotal);
   }
   return sum;
@@ -799,7 +824,38 @@ function personsOf(key, unitId){
   var u = db.units.filter(function(x){ return x.id === unitId; })[0];
   return u ? Math.max(0, Math.round(num(u.persons))) : 0;
 }
-function compute(key){
+/* ============================================================
+   مانده واحدها (انتقال مانده از ماه قبل)
+   مانده هر واحد = بدهکار (+) یا بستانکار (−).
+   مانده اول ماه = مانده قبلی ثبت‌شده برای واحد + (شارژ − پرداختی) همه ماه‌های قبل
+   از اولین ماه ثبت‌شده. ماه‌های پیش از آن در حساب نیستند.
+   ============================================================ */
+/* ماه شروع حساب: ماه ثابت‌شده (پس از حذف داده قدیمی) یا اولین ماهی که
+   پرداخت/هزینه دارد، و اگر هنوز چیزی ثبت نشده، ماه جاری. */
+function carryStartKey(){
+  if(db.carryStart) return db.carryStart;
+  var f = firstDataKey();
+  if(f) return f;
+  var t = todayJalali();
+  return mkey(t.jy, t.jm);
+}
+/* مانده هر واحد در ابتدای ماه key. */
+function carryIn(key){
+  var out = {}, startKey = carryStartKey();
+  var from = monthIndex(startKey), to = monthIndex(key);
+  db.units.forEach(function(u){ out[u.id] = 0; });
+  if(to < from) return {prev:out, inChain:false, start:startKey};
+  db.units.forEach(function(u){ out[u.id] = num(u.openBal); });
+  for(var i = from; i < to; i++){
+    var k = keyFromIndex(i), rate = rateOf(k), mm = db.months[k];
+    db.units.forEach(function(u){
+      var paid = (mm && mm.payments) ? num(mm.payments[u.id]) : 0;
+      out[u.id] += personsOf(k, u.id) * rate - paid;
+    });
+  }
+  return {prev:out, inChain:true, start:startKey};
+}
+function compute(key, noCarry){
   var m = monthData(key, false);
   var units = db.units;
   var rate = rateOf(key);
@@ -827,18 +883,64 @@ function compute(key){
     paid[u.id] = num(m.payments[u.id]);
     paidTotal += paid[u.id];
   });
+  /* مانده از ماه‌های قبل و مانده پایان این ماه برای هر واحد */
+  var ci = noCarry ? {prev:{}, inChain:false} : carryIn(key);
+  var prev = {}, bal = {}, prevDebt = 0, prevCredit = 0, payable = 0, due = 0, credit = 0;
+  units.forEach(function(u){
+    var pv = ci.prev[u.id] || 0;
+    prev[u.id] = pv;
+    bal[u.id] = pv + shares[u.id] - paid[u.id];
+    if(pv > 0) prevDebt += pv; else prevCredit -= pv;
+    payable += Math.max(0, pv + shares[u.id]);
+    if(bal[u.id] > 0) due += bal[u.id]; else credit -= bal[u.id];
+  });
   return {
     key:key, m:m, catTotals:catTotals, total:total, shares:shares, paid:paid,
-    paidTotal:paidTotal, due:total - paidTotal, rate:rate, persons:persons,
-    personsTotal:personsTotal, expensesTotal:expensesTotal, expItems:expItemsByCat
+    paidTotal:paidTotal, rate:rate, persons:persons,
+    personsTotal:personsTotal, expensesTotal:expensesTotal, expItems:expItemsByCat,
+    inChain:!!ci.inChain, prev:prev, bal:bal, prevDebt:prevDebt, prevCredit:prevCredit,
+    payable:payable, due:due, credit:credit
   };
+}
+/* خلاصه ۱۲ ماه یک سال؛ فقط ماه‌هایی که در حساب هستند جمع زده می‌شوند. */
+function yearAgg(jy){
+  var A = {months:[], tTotal:0, tPaid:0, firstPrev:0, lastDue:0, lastCredit:0, firstSet:false,
+           perUnit:{}, paidY:{}, prevY:{}, endBal:{}};
+  db.units.forEach(function(u){ A.perUnit[u.id] = 0; A.paidY[u.id] = 0; A.prevY[u.id] = 0; A.endBal[u.id] = 0; });
+  var last = null;
+  for(var m = 1; m <= 12; m++){
+    var r = compute(mkey(jy, m));
+    A.months.push(r);
+    if(!r.inChain) continue;
+    A.tTotal += r.total; A.tPaid += r.paidTotal;
+    if(!A.firstSet){
+      A.firstSet = true; A.firstPrev = r.prevDebt;
+      db.units.forEach(function(u){ A.prevY[u.id] = r.prev[u.id] || 0; });
+    }
+    db.units.forEach(function(u){ A.perUnit[u.id] += (r.shares[u.id] || 0); A.paidY[u.id] += (r.paid[u.id] || 0); });
+    last = r;
+  }
+  if(last){
+    A.lastDue = last.due; A.lastCredit = last.credit;
+    db.units.forEach(function(u){ A.endBal[u.id] = last.bal[u.id] || 0; });
+  }
+  return A;
+}
+/* متن مانده برای جدول‌ها و چاپ */
+function balLabel(b){
+  return money(Math.abs(b)) + (b < -0.5 ? ' (بستانکار)' : '');
+}
+function prevCellHtml(p){
+  if(Math.abs(p) < 0.5) return '<span style="color:var(--muted)">' + money(0) + '</span><small>مانده قبل</small>';
+  if(p > 0) return '<span style="color:var(--bad)">' + money(p) + '</span><small>بدهی قبل</small>';
+  return '<span style="color:var(--ok)">' + money(-p) + '</span><small>بستانکار قبل</small>';
 }
 
 /* ============================================================
    رندر
    ============================================================ */
 function renderHeader(){
-  $('#bTitle').textContent = 'Morteza Management Software';
+  $('#bTitle').textContent = APP_NAME;
   var sub = $('#bSub');
   if(sub) sub.textContent = '🏢 ' + (db.building || 'مدیریت شارژ آپارتمان');
   $('#mLabel').textContent = J_MONTHS[state.month-1] + ' ' + faDigits(state.year);
@@ -879,15 +981,16 @@ function renderMonthly(){
   var ph = '';
   db.units.forEach(function(u){
     var share = r.shares[u.id] || 0, paid = r.paid[u.id] || 0;
-    var p = r.persons[u.id] || 0;
+    var p = r.persons[u.id] || 0, pv = r.prev[u.id] || 0;
     ph += '<div class="row">' +
       '<span class="lbl">' + esc(u.name) + '<small>نفرات</small></span>' +
       '<div style="flex:0 0 68px"><input class="numIn" type="text" inputmode="numeric" ' +
         'data-persons="' + esc(u.id) + '" value="' + faDigits(p) + '" title="تعداد نفرات این ماه"></div>' +
-      '<span class="cell" data-share="' + esc(u.id) + '" style="color:var(--brand)">' + money(share) + '</span>' +
+      '<span class="cell" data-share="' + esc(u.id) + '" style="color:var(--brand)">' + money(share) + '<small>شارژ ماه</small></span>' +
+      '<span class="cell" data-prev="' + esc(u.id) + '">' + prevCellHtml(pv) + '</span>' +
       '<div class="grow" style="max-width:140px"><input class="amt" type="text" inputmode="numeric" ' +
         'data-paid="' + esc(u.id) + '" value="' + (paid ? group(paid) : '') + '" placeholder="0"></div>' +
-      '<span class="cell" data-bal="' + esc(u.id) + '">' + balText(share - paid) + '</span>' +
+      '<span class="cell" data-bal="' + esc(u.id) + '">' + balText(pv + share - paid) + '</span>' +
     '</div>';
   });
   $('#payList').innerHTML = ph || '<div class="note">واحدی تعریف نشده است.</div>';
@@ -922,8 +1025,13 @@ function refreshNumbers(){
   var r = compute(key);
   $('#sumTotal').textContent = money(r.total);
   $('#sumPersons').textContent = faDigits(r.personsTotal);
+  $('#sumPrev').textContent = money(r.prevDebt);
+  var spl = $('#sumPrevLbl');
+  if(spl) spl.textContent = (r.prevDebt < 0.5 && r.prevCredit > 0.5) ? 'بستانکاری از ماه‌های قبل' : 'مانده از ماه‌های قبل';
+  if(r.prevDebt < 0.5 && r.prevCredit > 0.5) $('#sumPrev').textContent = money(r.prevCredit);
+  $('#sumPayable').textContent = money(r.payable);
   $('#sumPaid').textContent = money(r.paidTotal);
-  $('#sumDue').textContent = money(Math.max(0, r.due));
+  $('#sumDue').textContent = money(r.due);
   $('#expHint').textContent = 'جمع هزینه‌ها: ' + money(r.expensesTotal) + ' ' + db.currency;
   /* مانده صندوق: همیشه نشان داده می‌شود، حتی وقتی ماه خالی است. */
   var fund = fundOf(key);
@@ -963,6 +1071,12 @@ function refreshNumbers(){
   if(cmp){
     var diff = r.expensesTotal - r.total;
     var txt = 'نرخ این ماه: ' + money(r.rate) + ' × ' + faDigits(r.personsTotal) + ' نفر = ' + money(r.total) + ' ' + db.currency;
+    if(r.prevDebt > 0.5){
+      txt += ' — مانده بدهی از قبل: ' + money(r.prevDebt) + ' ' + db.currency + '، قابل وصول این ماه: ' + money(r.payable) + ' ' + db.currency;
+    }
+    if(r.prevCredit > 0.5){
+      txt += ' — بستانکاری (پیش‌پرداخت) واحدها از قبل: ' + money(r.prevCredit) + ' ' + db.currency;
+    }
     if(r.expensesTotal > 0){
       txt += ' — هزینه‌های ثبت‌شده: ' + money(r.expensesTotal) + ' ' + db.currency + '، ' +
         (diff > 0 ? 'کسری ' + money(diff) : (diff < 0 ? 'مازاد ' + money(-diff) : 'برابر'));
@@ -970,10 +1084,11 @@ function refreshNumbers(){
     cmp.textContent = txt;
   }
   db.units.forEach(function(u){
-    var share = r.shares[u.id] || 0, paid = r.paid[u.id] || 0;
-    var s = $('[data-share="' + u.id + '"]'), b = $('[data-bal="' + u.id + '"]');
-    if(s) s.textContent = money(share);
-    if(b) b.innerHTML = balText(share - paid);
+    var share = r.shares[u.id] || 0, paid = r.paid[u.id] || 0, pv = r.prev[u.id] || 0;
+    var s = $('[data-share="' + u.id + '"]'), pc = $('[data-prev="' + u.id + '"]'), b = $('[data-bal="' + u.id + '"]');
+    if(s) s.innerHTML = money(share) + '<small>شارژ ماه</small>';
+    if(pc) pc.innerHTML = prevCellHtml(pv);
+    if(b) b.innerHTML = balText(pv + share - paid);
   });
 }
 function renderUnits(){
@@ -988,6 +1103,26 @@ function renderUnits(){
     '</div>';
   });
   $('#unitList').innerHTML = html || '<div class="note">واحدی وجود ندارد.</div>';
+  var ob = '';
+  db.units.forEach(function(u){
+    var v = num(u.openBal), sd = v < 0 ? 'cr' : 'db', id = esc(u.id);
+    ob += '<div class="row">' +
+      '<span class="lbl">' + esc(u.name) + '</span>' +
+      '<div class="grow" style="max-width:170px"><input class="amt" type="text" inputmode="numeric" ' +
+        'data-uf="openAmt" data-uid="' + id + '" value="' + (v ? group(Math.abs(v)) : '') + '" placeholder="0" title="مبلغ مانده قبلی"></div>' +
+      '<div style="flex:0 0 104px"><select data-uf="openSide" data-uid="' + id + '" title="بدهکار یا بستانکار">' +
+        '<option value="db"' + (sd === 'db' ? ' selected' : '') + '>بدهکار</option>' +
+        '<option value="cr"' + (sd === 'cr' ? ' selected' : '') + '>بستانکار</option>' +
+      '</select></div>' +
+    '</div>';
+  });
+  $('#openBalList').innerHTML = ob || '<div class="note">واحدی وجود ندارد.</div>';
+  var sk = carryStartKey(), sp = String(sk).split('-');
+  var noData = !db.carryStart && !firstDataKey();
+  $('#carryNote').textContent = noData
+    ? 'هنوز پرداخت یا هزینه‌ای ثبت نشده؛ حساب مانده‌ها از ماه جاری (' + monthLabel(num(sp[0]), num(sp[1])) + ') شروع می‌شود.'
+    : 'حساب مانده‌ها از ' + monthLabel(num(sp[0]), num(sp[1])) + ' شروع می‌شود' +
+      (db.carryStart ? '.' : ' (اولین ماهی که در آن پرداخت یا هزینه ثبت کرده‌اید).');
   var cats = '';
   db.categories.forEach(function(c){
     cats += '<div class="row">' +
@@ -1009,45 +1144,46 @@ function renderUnits(){
   renderAutoBackup();
 }
 function renderYearly(){
-  var rows = '', tTotal = 0, tPaid = 0, perUnit = {};
-  db.units.forEach(function(u){ perUnit[u.id] = 0; });
+  var A = yearAgg(state.year), rows = '';
   for(var m=1; m<=12; m++){
-    var r = compute(mkey(state.year, m));
-    tTotal += r.total; tPaid += r.paidTotal;
-    db.units.forEach(function(u){ perUnit[u.id] += (r.shares[u.id] || 0); });
-    var has = r.total > 0 || r.paidTotal > 0;
+    var r = A.months[m-1];
+    var has = r.inChain && (r.total > 0 || r.paidTotal > 0 || r.prevDebt > 0.5);
     var mFund = fundOf(mkey(state.year, m));
+    var status = has
+      ? (r.due <= 0.5 ? '<span class="chip ok">تسویه</span>' : '<span class="chip bad">مانده</span>')
+      : (r.inChain ? '<span class="chip">خالی</span>' : '<span class="chip">قبل از شروع</span>');
     rows += '<tr data-jump="' + m + '" style="cursor:pointer">' +
       '<td style="text-align:right">' + J_MONTHS[m-1] + '</td>' +
       '<td class="num">' + (has ? money(r.rate) : '—') + '</td>' +
       '<td>' + (has ? faDigits(r.personsTotal) : '—') + '</td>' +
       '<td class="num">' + (has ? money(r.total) : '—') + '</td>' +
+      '<td class="num">' + (has ? money(r.prevDebt) : '—') + '</td>' +
       '<td class="num">' + (has ? money(r.paidTotal) : '—') + '</td>' +
-      '<td class="num">' + (has ? money(Math.max(0, r.due)) : '—') + '</td>' +
+      '<td class="num">' + (has ? money(r.due) : '—') + '</td>' +
       '<td class="num' + (mFund < -0.5 ? ' neg' : '') + '">' + money(mFund) + '</td>' +
-      '<td>' + (has ? (r.due <= 0.5 ? '<span class="chip ok">تسویه</span>' : '<span class="chip bad">مانده</span>') : '<span class="chip">خالی</span>') + '</td>' +
+      '<td>' + status + '</td>' +
     '</tr>';
   }
   rows += '<tr class="total"><td>جمع سال</td><td></td><td></td>' +
-    '<td class="num">' + money(tTotal) + '</td>' +
-    '<td class="num">' + money(tPaid) + '</td>' +
-    '<td class="num">' + money(Math.max(0, tTotal - tPaid)) + '</td>' +
+    '<td class="num">' + money(A.tTotal) + '</td>' +
+    '<td class="num">' + money(A.firstPrev) + '</td>' +
+    '<td class="num">' + money(A.tPaid) + '</td>' +
+    '<td class="num">' + money(A.lastDue) + '</td>' +
     '<td class="num">' + money(fundOf(mkey(state.year, 12))) + '</td><td></td></tr>';
   $('#yearTable').innerHTML =
-    '<thead><tr><th>ماه</th><th>نرخ هر نفر</th><th>نفرات</th><th>جمع شارژ</th><th>وصول‌شده</th><th>مانده</th><th>صندوق</th><th>وضعیت</th></tr></thead>' +
+    '<thead><tr><th>ماه</th><th>نرخ هر نفر</th><th>نفرات</th><th>جمع شارژ</th><th>مانده قبل</th><th>وصول‌شده</th><th>مانده</th><th>صندوق</th><th>وضعیت</th></tr></thead>' +
     '<tbody>' + rows + '</tbody>';
   var ur = '';
   db.units.forEach(function(u){
-    var share = perUnit[u.id] || 0, paidY = 0;
-    for(var k=1;k<=12;k++) paidY += num(((db.months[mkey(state.year,k)] || {}).payments || {})[u.id]);
     ur += '<tr><td style="text-align:right">' + esc(u.name) + '</td>' +
       '<td>' + faDigits(num(u.persons)) + '</td>' +
-      '<td class="num">' + money(share) + '</td>' +
-      '<td class="num">' + money(paidY) + '</td>' +
-      '<td class="num">' + money(Math.max(0, share - paidY)) + '</td></tr>';
+      '<td class="num">' + balLabel(A.prevY[u.id]) + '</td>' +
+      '<td class="num">' + money(A.perUnit[u.id]) + '</td>' +
+      '<td class="num">' + money(A.paidY[u.id]) + '</td>' +
+      '<td class="num">' + balLabel(A.endBal[u.id]) + '</td></tr>';
   });
   $('#yearUnitTable').innerHTML =
-    '<thead><tr><th>واحد</th><th>نفرات</th><th>جمع شارژ سال</th><th>جمع پرداختی</th><th>مانده</th></tr></thead><tbody>' + ur + '</tbody>';
+    '<thead><tr><th>واحد</th><th>نفرات</th><th>مانده قبل از سال</th><th>جمع شارژ سال</th><th>جمع پرداختی</th><th>مانده پایان سال</th></tr></thead><tbody>' + ur + '</tbody>';
 }
 function renderAll(){
   renderHeader(); renderMonthly(); renderUnits(); renderYearly();
@@ -1195,7 +1331,7 @@ function bindUnits(){
       refreshNumbers();
       return;
     }
-    if(!el.dataset.uf || el.dataset.uf === 'persons') return;
+    if(!el.dataset.uf || el.dataset.uf === 'persons' || el.dataset.uf === 'openAmt' || el.dataset.uf === 'openSide') return;
     var u = db.units.filter(function(x){ return x.id === el.dataset.uid; })[0];
     if(!u) return;
     u[el.dataset.uf] = el.value;
@@ -1212,6 +1348,19 @@ function bindUnits(){
       el.value = faDigits(p);
       save(); refreshNumbers(); renderYearly();
       toast('نفرات ' + (uu ? uu.name : '') + ' برای ' + J_MONTHS[state.month-1] + ' ثبت شد');
+      return;
+    }
+    if(el.dataset && (el.dataset.uf === 'openAmt' || el.dataset.uf === 'openSide')){
+      var ou = db.units.filter(function(x){ return x.id === el.dataset.uid; })[0];
+      var orow = el.closest ? el.closest('.row') : null;
+      if(ou && orow){
+        var amtEl = orow.querySelector('[data-uf="openAmt"]'), sideEl = orow.querySelector('[data-uf="openSide"]');
+        var oamt = Math.round(Math.abs(num(amtEl.value)));
+        ou.openBal = (sideEl.value === 'cr') ? -oamt : oamt;
+        amtEl.value = oamt ? group(oamt) : '';
+        save(); renderMonthly(); renderYearly();
+        toast('مانده قبلی ' + ou.name + ' ذخیره شد');
+      }
       return;
     }
     if(el.dataset && el.dataset.uf === 'persons'){
@@ -1302,7 +1451,7 @@ function bindUnits(){
   });
   $('#addUnit').addEventListener('click', function(){
     if(db.units.length >= 40){ toast('حداکثر ۴۰ واحد'); return; }
-    db.units.push({id:uid('u'), name:'واحد ' + faDigits(db.units.length + 1), owner:'', persons:DEFAULT_PERSONS});
+    db.units.push({id:uid('u'), name:'واحد ' + faDigits(db.units.length + 1), owner:'', persons:DEFAULT_PERSONS, openBal:0});
     save(); renderAll();
     toast('واحد اضافه شد');
   });
@@ -1358,16 +1507,23 @@ function monthSheet(key){
   });
   ex += '</tbody><tfoot><tr><td>جمع هزینه‌های ثبت‌شده</td><td class="num">' + money(r.expensesTotal) + '</td></tr></tfoot></table>';
   var pu = '<div class="p-h">۲) شارژ و وضعیت پرداخت واحدها</div>' +
-    '<table><thead><tr><th>واحد</th><th>نفرات</th><th>شارژ ماه</th><th>پرداخت‌شده</th><th>مانده</th><th>وضعیت</th></tr></thead><tbody>';
+    '<table><thead><tr><th>واحد</th><th>نفرات</th><th>شارژ ماه</th><th>مانده قبل</th><th>پرداخت‌شده</th><th>مانده</th><th>وضعیت</th></tr></thead><tbody>';
   db.units.forEach(function(u){
-    var s = r.shares[u.id] || 0, pd = r.paid[u.id] || 0, b = s - pd;
+    var s = r.shares[u.id] || 0, pd = r.paid[u.id] || 0, pv = r.prev[u.id] || 0, b = r.bal[u.id] || 0;
     pu += '<tr><td>' + esc(u.name) + '</td><td>' + faDigits(r.persons[u.id] || 0) + '</td>' +
-      '<td class="num">' + money(s) + '</td><td class="num">' + money(pd) + '</td>' +
-      '<td class="num">' + money(Math.abs(b)) + (b < 0 ? ' (بستانکار)' : '') + '</td>' +
+      '<td class="num">' + money(s) + '</td><td class="num">' + balLabel(pv) + '</td><td class="num">' + money(pd) + '</td>' +
+      '<td class="num">' + balLabel(b) + '</td>' +
       '<td>' + (Math.abs(b) < 0.5 ? 'تسویه' : (b > 0 ? 'بدهکار' : 'بستانکار')) + '</td></tr>';
   });
   pu += '</tbody><tfoot><tr><td colspan="2">جمع (' + faDigits(r.personsTotal) + ' نفر)</td><td class="num">' + money(r.total) + '</td>' +
-    '<td class="num">' + money(r.paidTotal) + '</td><td class="num">' + money(Math.max(0, r.due)) + '</td><td></td></tr></tfoot></table>';
+    '<td class="num">' + money(r.prevDebt) + '</td>' +
+    '<td class="num">' + money(r.paidTotal) + '</td><td class="num">' + money(r.due) + '</td><td></td></tr>';
+  if(r.prevCredit > 0.5 || r.credit > 0.5){
+    pu += '<tr><td colspan="3">جمع بستانکاری واحدها</td><td class="num">' + money(r.prevCredit) + '</td><td></td>' +
+      '<td class="num">' + money(r.credit) + '</td><td></td></tr>';
+  }
+  pu += '</tfoot></table>' +
+    '<div style="font-size:10px;margin-top:4px">مانده = مانده قبل + شارژ ماه − پرداخت‌شده. جمع‌های ستون‌های «مانده قبل» و «مانده» فقط بدهی واحدها را در بر می‌گیرد.</div>';
   var note = r.m.note ? '<div class="p-h">۳) یادداشت</div><div style="font-size:11px">' + esc(r.m.note) + '</div>' : '';
   var sign = '<div class="p-sign"><div>مهر و امضای مدیر ساختمان</div><div>امضای دریافت‌کننده</div></div>';
   var fundBox = '<div class="p-fund">💰 مانده صندوق در پایان ' + J_MONTHS[jm-1] + ': <b>' +
@@ -1379,44 +1535,42 @@ function yearSheet(){
   var head = '<div class="p-brand">' + APP_NAME + '</div>' +
     '<div class="p-title">' + esc(db.building || 'گزارش سالانه شارژ آپارتمان') + '</div>' +
     '<div class="p-sub">گزارش ۱۲ ماه سال ' + faDigits(state.year) + ' | تاریخ چاپ: ' + jalaliStamp(new Date()) + '</div>';
-  var rows = '', tT = 0, tP = 0;
+  var A = yearAgg(state.year), rows = '';
   for(var m=1; m<=12; m++){
-    var r = compute(mkey(state.year, m));
-    tT += r.total; tP += r.paidTotal;
-    rows += '<tr><td>' + J_MONTHS[m-1] + '</td><td class="num">' + money(r.rate) + '</td>' +
-      '<td>' + faDigits(r.personsTotal) + '</td><td class="num">' + money(r.total) + '</td>' +
-      '<td class="num">' + money(r.paidTotal) + '</td>' +
-      '<td class="num">' + money(Math.max(0, r.due)) + '</td>' +
+    var r = A.months[m-1];
+    var on = r.inChain;
+    rows += '<tr><td>' + J_MONTHS[m-1] + '</td><td class="num">' + (on ? money(r.rate) : '—') + '</td>' +
+      '<td>' + (on ? faDigits(r.personsTotal) : '—') + '</td><td class="num">' + (on ? money(r.total) : '—') + '</td>' +
+      '<td class="num">' + (on ? money(r.prevDebt) : '—') + '</td>' +
+      '<td class="num">' + (on ? money(r.paidTotal) : '—') + '</td>' +
+      '<td class="num">' + (on ? money(r.due) : '—') + '</td>' +
       '<td class="num">' + money(fundOf(mkey(state.year, m))) + '</td></tr>';
   }
-  rows += '<tr><td><b>جمع سال</b></td><td></td><td></td><td class="num"><b>' + money(tT) + '</b></td>' +
-    '<td class="num"><b>' + money(tP) + '</b></td><td class="num"><b>' + money(Math.max(0, tT - tP)) + '</b></td>' +
+  rows += '<tr><td><b>جمع سال</b></td><td></td><td></td><td class="num"><b>' + money(A.tTotal) + '</b></td>' +
+    '<td class="num"><b>' + money(A.firstPrev) + '</b></td>' +
+    '<td class="num"><b>' + money(A.tPaid) + '</b></td><td class="num"><b>' + money(A.lastDue) + '</b></td>' +
     '<td class="num"><b>' + money(fundOf(mkey(state.year, 12))) + '</b></td></tr>';
   var t1 = '<div class="p-h">۱) عملکرد ماهانه</div><table><thead><tr><th>ماه</th><th>نرخ هر نفر</th>' +
-    '<th>نفرات</th><th>جمع شارژ</th><th>وصول‌شده</th><th>مانده</th><th>صندوق</th></tr></thead><tbody>' + rows + '</tbody></table>';
-  var perUnit = {}, paidY = {};
-  db.units.forEach(function(u){ perUnit[u.id] = 0; paidY[u.id] = 0; });
-  for(var k=1; k<=12; k++){
-    var rr = compute(mkey(state.year, k));
-    db.units.forEach(function(u){ perUnit[u.id] += (rr.shares[u.id] || 0); paidY[u.id] += (rr.paid[u.id] || 0); });
-  }
+    '<th>نفرات</th><th>جمع شارژ</th><th>مانده قبل</th><th>وصول‌شده</th><th>مانده</th><th>صندوق</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<div style="font-size:10px;margin-top:4px">ماه‌های قبل از شروع حساب با «—» نشان داده شده‌اند. «مانده» در هر ماه شامل مانده ماه‌های قبل است. در سطر «جمع سال»، مانده قبل مربوط به اولین ماه حساب و مانده مربوط به پایان سال است.</div>';
   var urows = '';
   db.units.forEach(function(u){
     urows += '<tr><td>' + esc(u.name) + '</td><td>' + esc(u.owner || '—') + '</td>' +
       '<td>' + faDigits(num(u.persons)) + '</td>' +
-      '<td class="num">' + money(perUnit[u.id]) + '</td>' +
-      '<td class="num">' + money(paidY[u.id]) + '</td>' +
-      '<td class="num">' + money(Math.max(0, perUnit[u.id] - paidY[u.id])) + '</td></tr>';
+      '<td class="num">' + balLabel(A.prevY[u.id]) + '</td>' +
+      '<td class="num">' + money(A.perUnit[u.id]) + '</td>' +
+      '<td class="num">' + money(A.paidY[u.id]) + '</td>' +
+      '<td class="num">' + balLabel(A.endBal[u.id]) + '</td></tr>';
   });
   var t2 = '<div class="p-h">۲) جمع سالانه هر واحد</div><table><thead><tr><th>واحد</th><th>مالک/ساکن</th>' +
-    '<th>نفرات</th><th>جمع شارژ سال</th><th>جمع پرداختی</th><th>مانده</th></tr></thead><tbody>' + urows + '</tbody></table>';
+    '<th>نفرات</th><th>مانده قبل از سال</th><th>جمع شارژ سال</th><th>جمع پرداختی</th><th>مانده پایان سال</th></tr></thead><tbody>' + urows + '</tbody></table>';
   var sign = '<div class="p-sign"><div>مهر و امضای مدیر ساختمان</div><div>امضای بازرس/حسابرس</div></div>';
   return '<div class="p-sheet">' + head + t1 + t2 + sign + '</div>';
 }
 function unitReceipt(u, jy, jm){
   var key = mkey(jy, jm);
   var r = compute(key);
-  var s = r.shares[u.id] || 0, pd = r.paid[u.id] || 0;
+  var s = r.shares[u.id] || 0, pd = r.paid[u.id] || 0, pv = r.prev[u.id] || 0, bl = r.bal[u.id] || 0;
   var head = '<div class="p-brand">' + APP_NAME + '</div>' +
     '<div class="p-title">رسید شارژ — ' + esc(u.name) + '</div>' +
     '<div class="p-sub">' + esc(db.building || '') + ' | ' + J_MONTHS[jm-1] + ' ' + faDigits(jy) +
@@ -1424,8 +1578,11 @@ function unitReceipt(u, jy, jm){
   var t = '<table><tbody>' +
     '<tr><td style="text-align:right">مبلغ شارژ ماه</td><td class="num">' + money(s) + ' ' + esc(db.currency) + '</td></tr>' +
     '<tr><td style="text-align:right">تعداد نفرات × نرخ</td><td class="num">' + faDigits(r.persons[u.id] || 0) + ' × ' + money(r.rate) + '</td></tr>' +
+    '<tr><td style="text-align:right">مانده از ماه‌های قبل' + (pv < -0.5 ? ' (بستانکار)' : (pv > 0.5 ? ' (بدهکار)' : '')) + '</td><td class="num">' + money(Math.abs(pv)) + ' ' + esc(db.currency) + '</td></tr>' +
+    '<tr><td style="text-align:right">جمع قابل پرداخت (شارژ ماه + مانده قبل)</td><td class="num">' + money(Math.max(0, pv + s)) + ' ' + esc(db.currency) + '</td></tr>' +
     '<tr><td style="text-align:right">پرداخت‌شده</td><td class="num">' + money(pd) + ' ' + esc(db.currency) + '</td></tr>' +
-    '<tr><td style="text-align:right">مانده قابل پرداخت</td><td class="num">' + money(Math.max(0, s - pd)) + ' ' + esc(db.currency) + '</td></tr>' +
+    '<tr><td style="text-align:right">مانده قابل پرداخت</td><td class="num">' + money(Math.max(0, bl)) + ' ' + esc(db.currency) + '</td></tr>' +
+    (bl < -0.5 ? '<tr><td style="text-align:right">بستانکاری برای ماه بعد</td><td class="num">' + money(-bl) + ' ' + esc(db.currency) + '</td></tr>' : '') +
     '<tr><td style="text-align:right">مهلت پرداخت</td><td>' + faDigits(db.dueDay) + ' ' + J_MONTHS[jm-1] + ' ' + faDigits(jy) + '</td></tr>' +
     '</tbody></table>';
   var rows = '<div class="p-h">ریز هزینه‌های مشاع ماه (فقط جهت اطلاع)</div><table><thead><tr><th>شرح</th><th>مبلغ کل</th></tr></thead><tbody>';
@@ -1759,20 +1916,24 @@ function bindBackup(){
     out.push([csvEscape('گزارش شارژ ' + db.building + ' - سال ' + state.year)].join(','));
     out.push('');
     out.push(['ماه'].concat(db.categories.map(function(c){ return c.name; }))
-      .concat(['نرخ هر نفر','جمع نفرات','جمع شارژ','جمع هزینه ثبت‌شده','جمع پرداختی','مانده','مانده صندوق'])
+      .concat(['نرخ هر نفر','جمع نفرات','جمع شارژ','مانده قبل','جمع هزینه ثبت‌شده','جمع پرداختی','مانده','مانده صندوق'])
       .concat(db.units.map(function(u){ return 'نفرات ' + u.name; }))
       .concat(db.units.map(function(u){ return 'شارژ ' + u.name; }))
       .concat(db.units.map(function(u){ return 'پرداختی ' + u.name; }))
+      .concat(db.units.map(function(u){ return 'مانده قبل ' + u.name + ' (منفی=بستانکار)'; }))
+      .concat(db.units.map(function(u){ return 'مانده ' + u.name + ' (منفی=بستانکار)'; }))
       .map(csvEscape).join(','));
     for(var m=1; m<=12; m++){
       var r = compute(mkey(state.year, m));
       out.push([J_MONTHS[m-1]]
         .concat(db.categories.map(function(c){ return r.catTotals[c.id] || 0; }))
-        .concat([r.rate, r.personsTotal, r.total, r.expensesTotal, r.paidTotal, Math.max(0, r.due)])
+        .concat([r.rate, r.personsTotal, r.total, r.prevDebt, r.expensesTotal, r.paidTotal, r.due])
         .concat([fundOf(mkey(state.year, m))])
         .concat(db.units.map(function(u){ return r.persons[u.id] || 0; }))
         .concat(db.units.map(function(u){ return r.shares[u.id] || 0; }))
         .concat(db.units.map(function(u){ return r.paid[u.id] || 0; }))
+        .concat(db.units.map(function(u){ return r.prev[u.id] || 0; }))
+        .concat(db.units.map(function(u){ return r.bal[u.id] || 0; }))
         .map(csvEscape).join(','));
     }
     download('apartment-' + state.year + '.csv', '\uFEFF' + out.join('\r\n'), 'text/csv;charset=utf-8');
@@ -1811,9 +1972,17 @@ function bindBackup(){
        صندوق بعد از حذف هم دقیقاً همان عدد قبلی بماند. */
     var carry = 0;
     del.forEach(function(k){
-      var rr = compute(k);
+      var rr = compute(k, true);
       carry += (rr.paidTotal - rr.expensesTotal);
     });
+    /* مانده بدهی/بستانکاری واحدها هم باید بعد از حذف همان بماند: مانده اول
+       اولین ماه باقی‌مانده، به‌عنوان «مانده قبلی» هر واحد ثبت می‌شود. */
+    var cutoffKey = keyFromIndex(limit - 1);
+    if(monthIndex(carryStartKey()) < monthIndex(cutoffKey)){
+      var snap = carryIn(cutoffKey).prev;
+      db.units.forEach(function(u){ u.openBal = Math.round(snap[u.id] || 0); });
+      db.carryStart = cutoffKey;
+    }
     del.forEach(function(k){ delete db.months[k]; });
     if(carry !== 0){
       db.fundOpen = num(db.fundOpen) + carry;
@@ -1821,7 +1990,7 @@ function bindBackup(){
       if(fo) fo.value = num(db.fundOpen) ? group(num(db.fundOpen)) : '';
     }
     save(); renderAll();
-    toast('داده‌های قدیمی حذف شد' + (carry !== 0 ? ' (اثر آن‌ها در مانده صندوق حفظ شد)' : ''));
+    toast('داده‌های قدیمی حذف شد (اثر آن‌ها در مانده صندوق و مانده واحدها حفظ شد)');
   });
   $('#reset').addEventListener('click', function(){
     if(!confirm('همه داده‌ها پاک و به حالت اولیه برگردد؟')) return;
@@ -1982,6 +2151,7 @@ function showWelcome(){
         '<div style="font-size:.74rem;color:var(--muted);margin-bottom:10px">مدیریت شارژ آپارتمان</div>' +
         '<ul style="margin:0 0 12px;padding-inline-start:18px;font-size:.84rem;line-height:2">' +
           '<li>اطلاعات خودکار در همین مرورگر ذخیره می‌شود و به اینترنت نیازی نیست.</li>' +
+          '<li>مانده (بدهی یا بستانکاری) هر واحد در پایان هر ماه، خودکار به ماه بعد منتقل می‌شود.</li>' +
           '<li>در گوشی: از بخش «تنظیمات ← نصب روی صفحه اصلی گوشی» راهنمای نصب را ببینید.</li>' +
           '<li>خروجی PDF/اکسل و پشتیبان‌گیری از بخش «گزارش سال» و «تنظیمات» در دسترس است.</li>' +
           '<li>در ابتدای هر ماه، یک نسخه پشتیبان خودکار ساخته می‌شود (تنظیمات ← پشتیبان خودکار ماهانه).</li>' +

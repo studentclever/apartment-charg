@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Morteza Management Software",
-  "short_name": "Morteza",
+  "name": "نرم‌افزار آپارتمان پلاک ۸",
+  "short_name": "پلاک ۸",
   "description": "محاسبه شارژ ماهانه و ثبت هزینه‌های مشاع ساختمان (آسانسور، برق، آب، نظافت، تعمیرات)",
   "lang": "fa",
   "dir": "rtl",

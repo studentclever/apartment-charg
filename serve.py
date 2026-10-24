@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Serve the Morteza Management Software app so a phone can open it and add it to the
+Serve the apartment app (نرم‌افزار آپارتمان پلاک ۸) so a phone can open it and add it to the
 home screen.
 
 WHY THIS EXISTS
