@@ -1,0 +1,2192 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#1d4ed8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="پلاک ۸">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>نرم‌افزار آپارتمان پلاک ۸</title>
+<style>
+:root{
+  --bg:#eef2f7; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+  --brand:#1d4ed8; --brand-2:#2563eb; --brand-soft:#e0ecff;
+  --ok:#15803d; --ok-soft:#dcfce7; --warn:#b45309; --warn-soft:#fef3c7;
+  --bad:#b91c1c; --bad-soft:#fee2e2;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 6px 20px rgba(15,23,42,.06);
+  --r:14px;
+}
+html[data-theme="dark"]{
+  --bg:#0b1220; --card:#121c2e; --ink:#e8eefb; --muted:#93a4bf; --line:#25334b;
+  --brand:#3b82f6; --brand-2:#60a5fa; --brand-soft:#1b2b47;
+  --ok:#4ade80; --ok-soft:#132a1e; --warn:#fbbf24; --warn-soft:#2c2312;
+  --bad:#f87171; --bad-soft:#2c1618;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink); line-height:1.65;
+  font-family:"Vazirmatn","IRANSansX","IRANSans",Tahoma,"Segoe UI",system-ui,sans-serif;
+  font-size:16px; -webkit-text-size-adjust:100%;
+  padding-bottom:calc(78px + env(safe-area-inset-bottom));
+}
+.wrap{max-width:760px;margin:0 auto;padding:10px 10px 4px}
+header.top{
+  position:sticky; top:0; z-index:30;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:#fff; padding:10px 12px;
+  box-shadow:var(--shadow);
+}
+.top-row{display:flex;align-items:center;gap:10px}
+.top-row h1{font-size:1.02rem;margin:0;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-sub{
+  font-size:.72rem;font-weight:600;opacity:.9;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.icon-btn{
+  background:rgba(255,255,255,.18);border:0;color:#fff;width:36px;height:36px;border-radius:11px;
+  font-size:1rem;cursor:pointer;display:grid;place-items:center;flex:0 0 auto
+}
+.icon-btn:active{background:rgba(255,255,255,.34)}
+.month-bar{display:flex;align-items:center;gap:8px;margin-top:8px}
+.month-bar button{
+  background:rgba(255,255,255,.18);border:0;color:#fff;width:38px;height:38px;border-radius:11px;
+  font-size:1rem;cursor:pointer;font-family:inherit
+}
+.month-bar button:active{background:rgba(255,255,255,.34)}
+.month-bar .m-label{flex:1;text-align:center;font-weight:700;font-size:1rem;white-space:nowrap}
+.month-bar select{
+  background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.28);
+  border-radius:10px;padding:8px 6px;font-family:inherit;font-size:16px;font-weight:600;text-align:center;
+  width:auto;flex:0 0 auto
+}
+.month-bar select option{color:#0f172a}
+.card{background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:10px;box-shadow:var(--shadow)}
+.card > h2{
+  font-size:.82rem;color:var(--muted);margin:0 0 10px;font-weight:700;
+  display:flex;align-items:center;gap:6px
+}
+.card > h2 .sp{margin-inline-start:auto;font-weight:600;font-size:.75rem}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stat{background:var(--bg);border-radius:11px;padding:9px 10px;text-align:center}
+.stat b{display:block;font-size:1.02rem;font-weight:800;letter-spacing:-.2px}
+.stat span{font-size:.72rem;color:var(--muted)}
+.stat.brand{background:var(--brand-soft)}
+.stat.brand b{color:var(--brand)}
+.stat.ok b{color:var(--ok)}
+.stat.bad b{color:var(--bad)}
+.stat.warn b{color:var(--warn)}
+.fund-bar{
+  margin-top:8px;padding:10px 12px;border-radius:11px;
+  background:var(--bg);border:1.5px solid var(--line)
+}
+.fund-bar.pos{background:var(--ok-soft);border-color:transparent}
+.fund-bar.neg{background:var(--bad-soft);border-color:transparent}
+.fund-main{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fund-lbl{font-size:.82rem;font-weight:700}
+.fund-main b{
+  margin-inline-start:auto;font-size:1.12rem;font-weight:800;direction:ltr;letter-spacing:-.3px
+}
+.fund-bar.pos .fund-main b{color:var(--ok)}
+.fund-bar.neg .fund-main b{color:var(--bad)}
+.fund-sub{font-size:.72rem;color:var(--muted);margin-top:4px;line-height:1.7}
+.fund-chip{
+  display:flex;align-items:center;gap:8px;margin-top:7px;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);
+  border-radius:11px;padding:6px 10px
+}
+.fund-chip .fc-lbl{font-size:.74rem;font-weight:700;white-space:nowrap}
+.fund-chip b{
+  margin-inline-start:auto;font-size:.92rem;font-weight:800;
+  direction:ltr;letter-spacing:-.2px;white-space:nowrap;max-width:58%;
+  overflow:hidden;text-overflow:ellipsis
+}
+.fund-chip.pos b{color:#c9ffe0}
+.fund-chip.neg b{color:#ffd2d2}
+.row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.row:last-child{border-bottom:0}
+.row .lbl{font-size:.88rem;font-weight:600;min-width:96px}
+.row .lbl small{display:block;color:var(--muted);font-weight:500;font-size:.7rem}
+.row .grow{flex:1;min-width:110px}
+.row .cell{min-width:80px;text-align:center;font-weight:700;font-size:.86rem}
+.row .cell small{display:block;color:var(--muted);font-weight:500;font-size:.64rem;margin-top:1px}
+input[type=text],input[type=number],select,textarea{
+  font-family:inherit;font-size:16px;color:var(--ink);background:var(--bg);
+  border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;width:100%
+}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--brand);background:var(--card)}
+input.amt{direction:ltr;text-align:left;font-weight:700}
+input.numIn{direction:ltr;text-align:center;font-weight:700}
+.u-name{flex:1;min-width:110px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;
+  border:0;border-radius:11px;padding:11px 14px;font-family:inherit;font-size:.9rem;font-weight:700;
+  cursor:pointer;background:var(--brand);color:#fff
+}
+.btn:active{filter:brightness(.94)}
+.btn.sec{background:var(--bg);color:var(--ink);border:1.5px solid var(--line)}
+.btn.dan{background:var(--bad)}
+.btn.sm{padding:8px 10px;font-size:.8rem;width:auto}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn-grid .full{grid-column:1/-1}
+.del{
+  flex:0 0 auto;width:36px;height:36px;border-radius:11px;border:0;cursor:pointer;
+  background:var(--bad-soft);color:var(--bad);font-size:1rem;display:grid;place-items:center
+}
+.tabs{
+  display:flex;gap:4px;background:var(--card);border-radius:12px;padding:4px;
+  margin-bottom:10px;box-shadow:var(--shadow);position:sticky;top:0;z-index:20
+}
+.tab{
+  flex:1;text-align:center;padding:9px 4px;border-radius:9px;font-size:.78rem;
+  font-weight:700;color:var(--muted);cursor:pointer;border:0;background:transparent;font-family:inherit
+}
+.tab.on{background:var(--brand);color:#fff}
+.view{display:none}
+.view.on{display:block}
+nav.bottom{
+  position:fixed;inset-inline:0;bottom:0;z-index:40;
+  background:var(--card);border-top:1px solid var(--line);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+  display:flex;justify-content:space-around
+}
+nav.bottom button{
+  flex:1;border:0;background:transparent;font-family:inherit;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:.68rem;font-weight:700;color:var(--muted);padding:4px 2px
+}
+nav.bottom button i{font-style:normal;font-size:1.25rem;line-height:1}
+nav.bottom button.on{color:var(--brand)}
+.note{font-size:.76rem;color:var(--muted);line-height:1.7}
+.chip{display:inline-block;font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--bg);color:var(--muted)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.sw{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.86rem;font-weight:600}
+.sw input{position:absolute;opacity:0;width:0;height:0}
+.sw i{font-style:normal;flex:0 0 auto;width:44px;height:26px;border-radius:99px;background:var(--line);position:relative;transition:.18s}
+.sw i::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.3);transition:.18s}
+.sw input:checked + i{background:var(--brand)}
+.sw input:checked + i::after{transform:translateX(-18px)}
+html[dir="ltr"] .sw input:checked + i::after{transform:translateX(18px)}
+.sw input:focus-visible + i{outline:2px solid var(--brand);outline-offset:2px}
+.bk-list{margin-top:10px;border-top:1px solid var(--line)}
+.bk-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bk-item:last-child{border-bottom:0}
+.bk-item .bk-main{flex:1;min-width:130px}
+.bk-item .bk-main b{display:block;font-size:.82rem;font-weight:700}
+.bk-item .bk-main span{font-size:.7rem;color:var(--muted)}
+.bk-item .btn{width:auto;padding:7px 10px;font-size:.76rem}
+.bk-item .del{width:32px;height:32px;font-size:.85rem}
+.bk-empty{padding:10px 0;font-size:.76rem;color:var(--muted)}
+.exp-block{padding:9px 0;border-bottom:1px solid var(--line)}
+.exp-block:last-child{border-bottom:0}
+.exp-head{display:flex;align-items:center;gap:8px}
+.exp-head .lbl{font-size:.88rem;font-weight:700;flex:1}
+.exp-sum{
+  font-size:.8rem;font-weight:800;color:var(--muted);direction:ltr;
+  padding:2px 8px;border-radius:99px;background:var(--bg)
+}
+.exp-block.has-exp .exp-sum{background:var(--brand-soft);color:var(--brand)}
+.exp-row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.exp-row .exp-amt{flex:0 0 116px}
+.exp-row .exp-note{flex:1;min-width:80px}
+.exp-row .del{width:34px;height:38px}
+.exp-row input{padding:8px 9px;font-size:15px}
+@media (max-width:359px){
+  .exp-row{flex-wrap:wrap}
+  .exp-row .exp-amt{flex:1 1 116px}
+  .exp-row .exp-note{flex:1 1 100%;order:3}
+}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th,td{padding:7px 5px;text-align:center;border-bottom:1px solid var(--line)}
+th{font-size:.72rem;color:var(--muted);font-weight:700}
+td.num{direction:ltr;font-weight:700}
+td.num.neg{color:var(--bad)}
+tr.total td{font-weight:800;background:var(--bg)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.toast{
+  position:fixed;bottom:calc(92px + env(safe-area-inset-bottom));inset-inline:0;z-index:60;
+  display:flex;justify-content:center;pointer-events:none
+}
+.toast div{
+  background:#0f172a;color:#fff;font-size:.82rem;font-weight:700;padding:9px 16px;border-radius:11px;
+  opacity:0;transform:translateY(14px);transition:.25s;max-width:88vw;text-align:center
+}
+.toast.show div{opacity:1;transform:translateY(0)}
+#printArea{display:none}
+@media print{
+  body{background:#fff;padding:0;font-size:12px}
+  .app,nav.bottom,.toast{display:none !important}
+  #printArea{display:block !important}
+  .p-sheet{page-break-after:always}
+  .p-sheet:last-child{page-break-after:auto}
+}
+.p-sheet{color:#000}
+.p-title{font-size:15px;font-weight:800;margin:0 0 2px}
+.p-sub{font-size:11px;color:#444;margin:0 0 10px}
+.p-brand{
+  font-size:10px;font-weight:700;letter-spacing:.4px;color:#555;
+  border-bottom:1px solid #bbb;padding-bottom:3px;margin-bottom:6px;
+  direction:rtl;text-align:right
+}
+.p-h{font-size:13px;font-weight:800;margin:14px 0 6px;border-bottom:2px solid #000;padding-bottom:3px}
+.p-sheet table{width:100%;border-collapse:collapse;font-size:11px}
+.p-sheet th,.p-sheet td{border:1px solid #333;padding:4px 5px;text-align:center}
+.p-sheet th{background:#eee;font-weight:800;color:#000}
+.p-sheet .num{direction:ltr}
+.p-sheet tfoot td{font-weight:800;background:#f6f6f6}
+.p-fund{
+  margin-top:10px;padding:7px 9px;border:1px solid #333;
+  background:#f6f6f6;font-size:11px
+}
+.p-sign{display:flex;gap:14px;margin-top:26px;font-size:11px}
+.p-sign div{flex:1;border-top:1px solid #333;padding-top:4px;text-align:center}
+@media (max-width:760px){
+  #yearTable{font-size:.7rem}
+  #yearTable th,#yearTable td{padding:6px 2px}
+}
+@media (max-width:560px){
+  /* ستون‌های ۲ «نرخ»، ۳ «نفرات»، ۵ «مانده قبل» و ۹ «وضعیت» پنهان می‌شوند؛
+     «مانده» (ستون ۷) و «صندوق» (ستون ۸) همیشه می‌مانند. */
+  #yearTable th:nth-child(2),#yearTable td:nth-child(2),
+  #yearTable th:nth-child(3),#yearTable td:nth-child(3),
+  #yearTable th:nth-child(5),#yearTable td:nth-child(5),
+  #yearTable th:nth-child(9),#yearTable td:nth-child(9),
+  #yearUnitTable th:nth-child(2),#yearUnitTable td:nth-child(2){display:none}
+  #yearUnitTable{font-size:.74rem}
+  #yearUnitTable th,#yearUnitTable td{padding:6px 2px}
+  #yearUnitTable td:first-child{white-space:nowrap}
+}
+@media (max-width:340px){
+  #yearTable{font-size:.64rem}
+  #yearTable th,#yearTable td{padding:5px 1px}
+  #yearUnitTable{font-size:.68rem}
+}
+@media (max-width:399px){
+  .p-sheet th,.p-sheet td{padding:3px 3px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-row">
+      <h1 id="bTitle">نرم‌افزار آپارتمان پلاک ۸</h1>
+      <button class="icon-btn" id="themeBtn" title="روشن/تیره">🌙</button>
+    </div>
+    <div class="top-sub" id="bSub"></div>
+    <div class="fund-chip" id="fundChip">
+      <span class="fc-lbl">💰 مانده صندوق</span>
+      <b id="sumFundTop">۰</b>
+    </div>
+    <div class="month-bar">
+      <button id="prevM" title="ماه قبل">◀</button>
+      <div class="m-label" id="mLabel">—</div>
+      <button id="nextM" title="ماه بعد">▶</button>
+      <select id="ySel" title="سال"></select>
+    </div>
+  </header>
+  <div class="wrap">
+    <div class="tabs">
+      <button class="tab on" data-view="monthly">🧾 شارژ ماه</button>
+      <button class="tab" data-view="yearly">📅 گزارش سال</button>
+      <button class="tab" data-view="units">👥 واحدها</button>
+      <button class="tab" data-view="settings">⚙️ تنظیمات</button>
+    </div>
+    <section class="view on" id="v-monthly">
+      <div class="card">
+        <h2>📊 خلاصه <span class="sp" id="sumMonthTag"></span></h2>
+        <div class="stats">
+          <div class="stat brand"><b id="sumTotal">۰</b><span>جمع شارژ ماه</span></div>
+          <div class="stat"><b id="sumPersons">۰</b><span>تعداد نفرات ساکن</span></div>
+          <div class="stat warn"><b id="sumPrev">۰</b><span id="sumPrevLbl">مانده از ماه‌های قبل</span></div>
+          <div class="stat"><b id="sumPayable">۰</b><span>جمع قابل وصول این ماه</span></div>
+          <div class="stat ok"><b id="sumPaid">۰</b><span>جمع وصول‌شده</span></div>
+          <div class="stat bad"><b id="sumDue">۰</b><span>مانده وصول‌نشده</span></div>
+        </div>
+        <div class="fund-bar" id="fundBar">
+          <div class="fund-main">
+            <span class="fund-lbl">💰 مانده صندوق</span>
+            <b id="sumFund">۰</b>
+          </div>
+          <div class="fund-sub" id="sumFundSub"></div>
+        </div>
+        <div class="note" id="sumCompare" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <h2>💸 هزینه‌های مشاع ماه <span class="sp" id="expHint"></span></h2>
+        <div id="expenseList"></div>
+        <div class="note" style="margin-top:8px">
+          این مبالغ فقط دفتر ثبت هزینه‌های ساختمان است؛ مبلغ شارژ هر واحد از
+          «تعداد نفرات × نرخ شارژ هر نفر» به دست می‌آید.
+        </div>
+      </div>
+      <div class="card">
+        <h2>💳 شارژ و پرداختی واحدها <span class="sp">واحد پول: <span id="curUnit">تومان</span></span></h2>
+        <div class="row" style="border-bottom:1px solid var(--line)">
+          <span class="lbl">نرخ شارژ هر نفر<small>قابل تغییر برای همین ماه</small></span>
+          <div class="grow" style="max-width:150px"><input class="amt" type="text" inputmode="numeric" id="rateInput" placeholder="0"></div>
+        </div>
+        <div id="payList"></div>
+        <div class="btn-grid" style="margin-top:10px">
+          <button class="btn sec" id="clearPay">🧹 صفر کردن پرداختی‌های ماه</button>
+          <button class="btn" id="printMonth">🖨️ خروجی PDF این ماه</button>
+        </div>
+        <button class="btn sec" id="rateApplyAll" style="margin-top:8px">🔁 اعمال نرخ این ماه روی همه ماه‌ها</button>
+      </div>
+      <div class="card">
+        <h2>📝 یادداشت ماه</h2>
+        <textarea id="mNote" rows="2" placeholder="مثلاً: تعمیر پمپ آب، خرید لامپ مشاع…"></textarea>
+      </div>
+    </section>
+    <section class="view" id="v-yearly">
+      <div class="card">
+        <h2>📅 عملکرد ۱۲ ماه سال <span class="sp" id="yearTag"></span></h2>
+        <div class="scroll"><table id="yearTable"></table></div>
+        <div class="note" style="margin-top:8px">برای دیدن جزئیات هر ماه، روی سطر همان ماه بزنید.</div>
+      </div>
+      <div class="card">
+        <h2>👤 جمع سالانه هر واحد</h2>
+        <div class="scroll"><table id="yearUnitTable"></table></div>
+      </div>
+      <div class="card">
+        <h2>🖨️ گزارش چاپی</h2>
+        <div class="btn-grid">
+          <button class="btn" id="printYear">📄 خروجی PDF کل سال</button>
+          <button class="btn sec" id="printYearUnits">👤 PDF رسید همه واحدها</button>
+        </div>
+      </div>
+    </section>
+    <section class="view" id="v-units">
+      <div class="card">
+        <h2>👥 فهرست واحدها <span class="sp">نفرات هر واحد</span></h2>
+        <div id="unitList"></div>
+        <div class="btn-grid" style="margin-top:10px">
+          <button class="btn sec" id="addUnit">➕ افزودن واحد</button>
+          <button class="btn sec" id="bulkPersons">👥 ثبت نفرات همه واحدها</button>
+        </div>
+        <div class="note" style="margin-top:8px">
+          تعداد نفرات ساکن هر واحد را اینجا وارد کنید. شارژ ماهانه هر واحد =
+          «تعداد نفرات × نرخ شارژ هر نفر». تغییر این جدول روی همه ماه‌ها اثر می‌گذارد؛
+          اگر فقط یک ماه خاص نفراتش فرق دارد، همان ماه را باز کنید و در فهرست پرداختی‌ها ویرایش کنید.
+        </div>
+      </div>
+      <div class="card">
+        <h2>📒 مانده قبلی واحدها <span class="sp">بدهی / بستانکاری از قبل</span></h2>
+        <div id="openBalList"></div>
+        <div class="note" style="margin-top:8px">
+          اگر واحدی پیش از شروع ثبت در این برنامه بدهی (مثلاً چند ماه شارژ پرداخت‌نشده) یا
+          بستانکاری (پیش‌پرداخت) داشته، همین‌جا وارد کنید. این مبلغ به شارژ اولین ماه ثبت‌شده
+          اضافه می‌شود و از آن به بعد، مانده هر ماه خودکار به ماه بعد منتقل می‌شود.
+        </div>
+        <div class="note" id="carryNote" style="margin-top:6px"></div>
+      </div>
+      <div class="card">
+        <h2>📇 مشخصات ساختمان</h2>
+        <div class="row"><span class="lbl">نام ساختمان</span><div class="grow"><input type="text" id="setBuilding"></div></div>
+        <div class="row"><span class="lbl">واحد پول</span><div class="grow"><input type="text" id="setCurrency" placeholder="تومان"></div></div>
+        <div class="row"><span class="lbl">مهلت پرداخت</span><div class="grow"><select id="setDueDay"></select></div></div>
+        <div class="row">
+          <span class="lbl">شارژ هر نفر<small>پیش‌فرض ماه‌های جدید</small></span>
+          <div class="grow"><input class="amt" type="text" inputmode="numeric" id="setRate" placeholder="0"></div>
+        </div>
+        <div class="row">
+          <span class="lbl">موجودی اول دوره<small>پول نقد صندوق پیش از اولین ماه ثبت‌شده</small></span>
+          <div class="grow"><input class="amt" type="text" inputmode="numeric" id="setFundOpen" placeholder="مثلاً 500000"></div>
+        </div>
+        <div class="note">
+          مانده صندوق = موجودی اول دوره + همه وصولی‌ها − همه هزینه‌های ثبت‌شده.
+          اگر از قبل پولی در صندوق ساختمان دارید، همین‌جا وارد کنید.
+          <br>💡 اگر وسط سال شروع می‌کنید: موجودی نقد فعلی صندوق را وارد کنید و مانده بدهی هر واحد را در «مانده اول دوره» همان واحد بنویسید؛ بقیه ماه‌های قبل را خالی بگذارید.
+        </div>
+      </div>
+    </section>
+    <section class="view" id="v-settings">
+      <div class="card" id="installCard">
+        <h2>📲 نصب روی صفحه اصلی گوشی</h2>
+        <div class="btn-grid">
+          <button class="btn" id="installBtn" style="display:none">📲 نصب برنامه روی گوشی</button>
+        </div>
+        <div class="note" id="installHint" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <h2>🏷️ انواع هزینه مشاع</h2>
+        <div id="catList"></div>
+        <div class="row" style="border-bottom:0">
+          <div class="grow"><input type="text" id="newCatName" placeholder="نام هزینه جدید (مثلاً گاز مشاع)"></div>
+          <button class="btn sm" id="addCat">➕ افزودن</button>
+        </div>
+        <div class="note">
+          این فهرست فقط برای ثبت و دسته‌بندی هزینه‌های ساختمان است. مبلغ شارژ هر واحد مستقل از این
+          هزینه‌ها و بر اساس «تعداد نفرات × نرخ شارژ هر نفر» محاسبه می‌شود.
+        </div>
+      </div>
+      <div class="card">
+        <h2>💾 پشتیبان‌گیری و بازیابی</h2>
+        <div class="btn-grid">
+          <button class="btn sec" id="expJson">⬇️ خروجی فایل پشتیبان</button>
+          <button class="btn sec" id="impJson">⬆️ بازگردانی از فایل</button>
+          <button class="btn sec" id="expCsv">📊 خروجی CSV برای اکسل</button>
+          <button class="btn sec" id="printYearAll">📄 خروجی PDF کل سال</button>
+          <button class="btn sec full" id="demo">🧪 پر کردن با اعداد نمونه</button>
+          <button class="btn sec full" id="prune">🧹 حذف داده‌های قدیمی‌تر از یک سال</button>
+          <button class="btn dan full" id="reset">🗑️ پاک کردن کامل داده‌ها</button>
+        </div>
+        <div class="note" style="margin-top:10px">
+          اطلاعات به‌صورت خودکار در حافظه همین مرورگر ذخیره می‌شود و به اینترنت نیازی نیست.
+          اگر حافظه مرورگر پاک شود داده‌ها از بین می‌رود؛ پس هر ماه یک‌بار «خروجی فایل پشتیبان» بگیرید.
+        </div>
+        <div class="note" style="margin-top:6px" id="verNote"></div>
+      </div>
+      <div class="card" id="autoBkCard">
+        <h2>🔄 پشتیبان خودکار ماهانه <span class="sp" id="autoBkState"></span></h2>
+        <div class="row">
+          <span class="lbl">پشتیبان خودکار<small>ابتدای هر ماه، یک‌بار</small></span>
+          <div class="grow" style="text-align:end">
+            <label class="sw">
+              <input type="checkbox" id="autoBkOn">
+              <i></i>
+              <span id="autoBkOnLbl">خاموش</span>
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <span class="lbl">نگهداری<small>تعداد نسخه‌های آرشیو</small></span>
+          <div style="flex:0 0 92px">
+            <input class="numIn" type="text" inputmode="numeric" id="autoBkKeep" value="۱۲">
+          </div>
+        </div>
+        <div class="btn-grid">
+          <button class="btn sec" id="autoBkNow">📥 گرفتن نسخه پشتیبان همین حالا</button>
+          <button class="btn sec full" id="autoBkAll">💾 ذخیره همه نسخه‌های آرشیو در یک فایل</button>
+        </div>
+        <div class="note" style="margin-top:10px">
+          وقتی این گزینه روشن باشد، در <b>اولین باری که برنامه را در هر ماه باز کنید</b> یک نسخه پشتیبان
+          از کل اطلاعات همان لحظه ساخته و در همین گوشی نگه داشته می‌شود. این نسخه‌ها در فهرست زیر
+          می‌آیند و هر وقت خواستید می‌توانید آن‌ها را در یک فایل ذخیره کنید یا برگردانید.
+        </div>
+        <div class="bk-list" id="autoBkList"></div>
+        <div class="note" id="autoBkNote" style="margin-top:10px"></div>
+      </div>
+    </section>
+  </div>
+  <nav class="bottom">
+    <button class="on" data-view="monthly"><i>🧾</i>شارژ ماه</button>
+    <button data-view="yearly"><i>📅</i>گزارش سال</button>
+    <button data-view="units"><i>👥</i>واحدها</button>
+    <button data-view="settings"><i>⚙️</i>تنظیمات</button>
+  </nav>
+</div>
+<div class="toast" id="toast"><div></div></div>
+<div id="printArea"></div>
+<input type="file" id="fileIn" accept=".json,application/json" style="display:none">
+<script>
+"use strict";
+
+/* ============================================================
+   تقویم جلالی (بر پایه الگوریتم استاندارد jalaali)
+   ============================================================ */
+var JAL_BREAKS = [-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
+function jdiv(a,b){
+  var q = a / b;
+  return q < 0 ? Math.ceil(q) : Math.floor(q);
+}
+function jmod(a,b){ return a - jdiv(a,b)*b; }
+function jalCal(jy){
+  var bl = JAL_BREAKS, gy = jy + 621, leapJ = -14, jp = bl[0], jm, jump = 0, leap, n, i;
+  if(jy < jp || jy >= bl[bl.length-1]) throw new Error('سال جلالی نامعتبر: ' + jy);
+  for(i=1;i<bl.length;i++){
+    jm = bl[i]; jump = jm - jp;
+    if(jy < jm) break;
+    leapJ = leapJ + jdiv(jump,33)*8 + jdiv(jmod(jump,33),4);
+    jp = jm;
+  }
+  n = jy - jp;
+  leapJ = leapJ + jdiv(n,33)*8 + jdiv(jmod(n,33)+3,4);
+  if(jmod(jump,33) === 4 && jump - n === 4) leapJ++;
+  var leapG = jdiv(gy,4) - jdiv((jdiv(gy,100)+1)*3,4) - 150;
+  var march = 20 + leapJ - leapG;
+  if(jump - n < 6) n = n - jump + jdiv(jump+4,33)*33;
+  leap = jmod(jmod(n+1,33)-1,4);
+  if(leap === -1) leap = 4;
+  return {leap:leap, gy:gy, march:march};
+}
+function g2d(gy,gm,gd){
+  var d = jdiv((gy + jdiv(gm-8,6) + 100100)*1461, 4) + jdiv(153*jmod(gm+9,12)+2,5) + gd - 34840408;
+  return d - jdiv(jdiv(gy + jdiv(gm-8,6) + 100100,100)*3,4) + 752;
+}
+function d2g(jdn){
+  var j = 4*jdn + 139361631;
+  j = j + jdiv(jdiv(4*jdn + 183187720, 146097)*3, 4)*4 - 3908;
+  var i = jdiv(jmod(j,1461),4)*5 + 308;
+  var gd = jdiv(jmod(i,153),5) + 1;
+  var gm = jmod(jdiv(i,153),12) + 1;
+  var gy = jdiv(j,1461) - 100100 + jdiv(8-gm,6);
+  return {gy:gy, gm:gm, gd:gd};
+}
+function d2j(jdn){
+  var gy = d2g(jdn).gy, jy = gy - 621, r = jalCal(jy);
+  var jdn1f = g2d(gy,3,r.march), k = jdn - jdn1f, jm, jd;
+  if(k >= 0){
+    if(k <= 185) return {jy:jy, jm:1 + jdiv(k,31), jd:jmod(k,31)+1};
+    k -= 186;
+  } else {
+    jy -= 1; k += 179;
+    if(r.leap === 1) k += 1;
+  }
+  jm = 7 + jdiv(k,30);
+  jd = jmod(k,30) + 1;
+  return {jy:jy, jm:jm, jd:jd};
+}
+function todayJalali(){
+  var d = new Date();
+  return d2j(g2d(d.getFullYear(), d.getMonth()+1, d.getDate()));
+}
+var J_MONTHS = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+
+/* ============================================================
+   کمک‌تابع‌ها
+   ============================================================ */
+var FA_D = '۰۱۲۳۴۵۶۷۸۹';
+function faDigits(s){ return String(s).replace(/[0-9]/g, function(d){ return FA_D.charAt(+d); }); }
+function enDigits(s){
+  return String(s == null ? '' : s)
+    .replace(/[۰-۹]/g, function(d){ return FA_D.indexOf(d); })
+    .replace(/[٠-٩]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); });
+}
+function group(n){
+  var v = Math.round(Math.abs(+n || 0));
+  var s = String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return ((+n || 0) < 0 ? '-' : '') + s;
+}
+function money(n){ return faDigits(group(n)); }
+function num(v){
+  if(typeof v === 'number') return isFinite(v) ? v : 0;
+  var s = enDigits(v).replace(/[\u2212\u2012\u2013\u2014]/g, '-').replace(/[,\u066C\u00A0\s]/g, '').replace(/[^\d.\-]/g, '');
+  var x = parseFloat(s);
+  return isNaN(x) ? 0 : x;
+}
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+  });
+}
+function mkey(jy,jm){ return jy + '-' + (jm < 10 ? '0'+jm : ''+jm); }
+function $(s,r){ return (r || document).querySelector(s); }
+function $$(s,r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+
+/* ============================================================
+   داده
+   ============================================================ */
+var KEY = 'apartment_charge_v2';
+var KEY_OLD = 'apartment_charge_v1';
+var APP_NAME = 'نرم‌افزار آپارتمان پلاک ۸';
+var DEFAULT_BUILDING = 'آپارتمان پلاک ۸';
+var OLD_DEFAULT_BUILDING = 'آپارتمان مسکونی';
+var DEFAULT_RATE = 400000;
+var DEFAULT_PERSONS = 2;
+var CAT_DEFAULT = [
+  {id:'elevator',    name:'آسانسور',  icon:'🛗', share:'equal'},
+  {id:'electricity', name:'برق مشاع', icon:'⚡', share:'equal'},
+  {id:'water',       name:'آب مشاع',  icon:'💧', share:'equal'},
+  {id:'cleaning',    name:'نظافت',    icon:'🧹', share:'equal'},
+  {id:'repairs',     name:'تعمیرات',  icon:'🔧', share:'equal'},
+  {id:'other',       name:'سایر',     icon:'📦', share:'equal'}
+];
+var db = null;
+var state = {view:'monthly', year:0, month:1};
+function uid(p){ return p + '_' + Math.random().toString(36).slice(2,8); }
+function defaultDb(){
+  var units = [];
+  for(var i=1;i<=10;i++) units.push({id:'u'+i, name:'واحد ' + faDigits(i), owner:'', persons:DEFAULT_PERSONS, openBal:0});
+  return {
+    version:3,
+    building:DEFAULT_BUILDING,
+    currency:'تومان',
+    rate:DEFAULT_RATE,
+    fundOpen:0,
+    dueDay:10,
+    units:units,
+    categories:JSON.parse(JSON.stringify(CAT_DEFAULT)),
+    months:{},
+    updatedAt:new Date().toISOString()
+  };
+}
+function save(){
+  db.updatedAt = new Date().toISOString();
+  var data = JSON.stringify(db);
+  try{ localStorage.setItem(KEY, data); return; }
+  catch(e){
+    // Out of space. The live data matters far more than old backups, so free
+    // archive entries one by one and retry before giving up.
+    var list = readArchive();
+    while(list.length){
+      list.shift();
+      writeArchive(list);
+      try{ localStorage.setItem(KEY, data); return; }catch(e2){}
+    }
+    toast('⚠️ ذخیره‌سازی ناموفق بود (حافظه مرورگر)');
+  }
+}
+function load(){
+  var raw = null;
+  try{ raw = localStorage.getItem(KEY); }catch(e){}
+  if(raw){
+    try{
+      var p = JSON.parse(raw);
+      if(p && p.units && p.categories){ db = p; normalize(); return; }
+    }catch(e){}
+  }
+  if(migrateOld()) return;
+  db = defaultDb();
+  save();
+}
+function migrateOld(){
+  var raw = null;
+  try{ raw = localStorage.getItem(KEY_OLD); }catch(e){}
+  if(!raw) return false;
+  try{
+    var p = JSON.parse(raw);
+    if(!p || !p.units) return false;
+    db = p;
+    db.version = 2;
+    db.rate = num(p.rate) || DEFAULT_RATE;
+    delete db.roundTo;
+    normalize();
+    save();
+    return true;
+  }catch(e){ return false; }
+}
+function normalize(){
+  db.units = db.units || [];
+  db.categories = db.categories || JSON.parse(JSON.stringify(CAT_DEFAULT));
+  db.months = db.months || {};
+  db.building = db.building || DEFAULT_BUILDING;
+  if(db.building === OLD_DEFAULT_BUILDING) db.building = DEFAULT_BUILDING;
+  if(!db.version || db.version < 3) db.version = 3;
+  if(db.carryStart != null && !/^1[3-6]\d\d-(0[1-9]|1[0-2])$/.test(String(db.carryStart))) delete db.carryStart;
+  db.currency = db.currency || 'تومان';
+  db.rate = (db.rate == null || db.rate === '' || !isFinite(num(db.rate))) ? DEFAULT_RATE : Math.max(0, num(db.rate));
+  db.fundOpen = (db.fundOpen == null || !isFinite(num(db.fundOpen))) ? 0 : num(db.fundOpen);
+  db.dueDay = num(db.dueDay) || 10;
+  db.units.forEach(function(u){
+    u.id = u.id || uid('u');
+    u.owner = u.owner || '';
+    u.openBal = isFinite(num(u.openBal)) ? Math.round(num(u.openBal)) : 0;
+    u.persons = (u.persons == null || !isFinite(num(u.persons))) ? DEFAULT_PERSONS : Math.max(0, Math.round(num(u.persons)));
+    delete u.coeff;
+  });
+  db.categories.forEach(function(c){
+    delete c.share;
+    c.icon = c.icon || '🧾';
+  });
+  Object.keys(db.months).forEach(function(k){
+    var m = db.months[k];
+    if(!m) return;
+    m.expenses = m.expenses || {};
+    m.payments = m.payments || {};
+    m.persons = m.persons || {};
+    m.note = m.note || '';
+    if(m.rate != null && !isFinite(num(m.rate))) m.rate = null;
+    // ارتقای هزینه‌های قدیمی (یک عدد) به فهرست ردیف‌ها
+    Object.keys(m.expenses).forEach(function(cid){
+      // ردیف‌هایی که نه مبلغ دارند و نه شرح، دور ریخته می‌شوند. این کار فقط
+      // هنگام بارگذاری انجام می‌شود تا وسط کار کاربر ردیف تازه‌اش پاک نشود.
+      var list = expItems(m, cid).filter(function(it){
+        return num(it.amount) !== 0 || String(it.note || '').trim() !== '';
+      });
+      if(!list.length) { delete m.expenses[cid]; return; }
+      m.expenses[cid] = list.map(function(it){
+        return {id: it.id || uid('ex'), amount: num(it.amount), note: String(it.note || '')};
+      });
+    });
+  });
+}
+
+/* ============================================================
+   موتور محاسبه
+   ============================================================ */
+/* هر هزینه مشاع می‌تواند چند ردیف داشته باشد (مثلاً تعمیرات در چند مرحله).
+   ردیف‌ها اینجا نگه داشته می‌شوند و جمعشان خودکار حساب می‌شود. */
+function isArr(v){ return Object.prototype.toString.call(v) === '[object Array]'; }
+function expItems(m, cid){
+  if(!m || !m.expenses) return [];
+  var v = m.expenses[cid];
+  if(v == null || v === '') return [];
+  if(isArr(v)) return v;
+  // سازگاری با داده قدیمی که فقط یک عدد بود
+  return [{id:'legacy_' + cid, amount:num(v), note:''}];
+}
+function expTotal(m, cid){
+  var list = expItems(m, cid), s = 0;
+  list.forEach(function(it){ s += num(it.amount); });
+  return s;
+}
+function expItem(m, cid, eid, create){
+  var list = expItems(m, cid);
+  for(var i=0;i<list.length;i++){ if(list[i].id === eid) return list[i]; }
+  if(!create) return null;
+  var it = {id: eid || uid('ex'), amount:0, note:''};
+  list.push(it);
+  m.expenses[cid] = list;
+  return it;
+}
+function expDropEmpty(m, cid){
+  var list = expItems(m, cid).filter(function(it){
+    return num(it.amount) !== 0 || String(it.note || '').trim() !== '';
+  });
+  if(list.length) m.expenses[cid] = list;
+  else delete m.expenses[cid];
+}
+function monthData(key, create){
+  if(!db.months[key]){
+    if(!create) return {expenses:{}, payments:{}, persons:{}, rate:null, note:''};
+    db.months[key] = {expenses:{}, payments:{}, persons:{}, rate:null, note:''};
+  }
+  var m = db.months[key];
+  m.expenses = m.expenses || {};
+  m.payments = m.payments || {};
+  m.persons = m.persons || {};
+  m.note = m.note || '';
+  return m;
+}
+function currentKey(){ return mkey(state.year, state.month); }
+/* ============================================================
+   صندوق ساختمان
+   موجودی صندوق = موجودی اول دوره + (همه وصولی‌ها − همه هزینه‌ها) تا پایان آن ماه.
+   شارژ وصول‌شده به صندوق می‌ریزد و هزینه‌های ثبت‌شده از آن کم می‌شود.
+   ============================================================ */
+/* موجودی اول دوره داخل خود داده ذخیره می‌شود تا در فایل پشتیبان هم بیاید. */
+function fundOpenGet(){
+  var v = num(db && db.fundOpen);
+  if(!isFinite(v)) v = 0;
+  return v;
+}
+function fundOpenSet(v){
+  if(!db) return;
+  v = num(v);
+  if(!isFinite(v)) v = 0;              // مقدار نامعتبر (مثل NaN) → صفر
+  v = Math.round(v);                   // گرد کردن به ریال/تومان کامل
+  if(v < 0){
+    // منفی یعنی صندوق بدهکار است؛ مجاز نیست، صفر در نظر گرفته می‌شود.
+    v = 0;
+    toast('⚠️ موجودی اول دوره نمی‌تواند منفی باشد — صفر ثبت شد');
+  }
+  db.fundOpen = v;
+  save();
+}
+function monthIndex(key){
+  var p = String(key).split('-');
+  return num(p[0]) * 12 + (num(p[1]) - 1);
+}
+function keyFromIndex(idx){
+  var y = Math.floor(idx / 12), m = (idx % 12) + 1;
+  return mkey(y, m);
+}
+/* اولین ماهی که در آن داده‌ای ثبت شده است؛ مبنای شروع محاسبه صندوق. */
+function firstDataKey(){
+  var bestKey = null, bestIdx = null;
+  Object.keys(db.months || {}).forEach(function(k){
+    var m = db.months[k];
+    if(!m) return;
+    var hasAny = false;
+    Object.keys(m.expenses || {}).forEach(function(cid){ if(expTotal(m, cid) !== 0) hasAny = true; });
+    Object.keys(m.payments || {}).forEach(function(uid){ if(num(m.payments[uid]) !== 0) hasAny = true; });
+    if(!hasAny) return;
+    var idx = monthIndex(k);
+    if(bestIdx === null || idx < bestIdx){ bestIdx = idx; bestKey = k; }
+  });
+  return bestKey;
+}
+/* موجودی صندوق در پایان ماه موردنظر. */
+function fundOf(key){
+  var base = firstDataKey();
+  if(!base) return fundOpenGet();
+  var from = monthIndex(base), to = monthIndex(key);
+  if(to < from) return fundOpenGet();
+  var sum = fundOpenGet();
+  for(var i = from; i <= to; i++){
+    var r = compute(keyFromIndex(i), true);
+    sum += (r.paidTotal - r.expensesTotal);
+  }
+  return sum;
+}
+function rateOf(key){
+  var m = db.months[key];
+  if(m && m.rate != null && m.rate !== '' && isFinite(num(m.rate))) return Math.max(0, num(m.rate));
+  return Math.max(0, num(db.rate));
+}
+function personsOf(key, unitId){
+  var m = db.months[key];
+  if(m && m.persons && m.persons[unitId] != null && isFinite(num(m.persons[unitId]))){
+    return Math.max(0, Math.round(num(m.persons[unitId])));
+  }
+  var u = db.units.filter(function(x){ return x.id === unitId; })[0];
+  return u ? Math.max(0, Math.round(num(u.persons))) : 0;
+}
+/* ============================================================
+   مانده واحدها (انتقال مانده از ماه قبل)
+   مانده هر واحد = بدهکار (+) یا بستانکار (−).
+   مانده اول ماه = مانده قبلی ثبت‌شده برای واحد + (شارژ − پرداختی) همه ماه‌های قبل
+   از اولین ماه ثبت‌شده. ماه‌های پیش از آن در حساب نیستند.
+   ============================================================ */
+/* ماه شروع حساب: ماه ثابت‌شده (پس از حذف داده قدیمی) یا اولین ماهی که
+   پرداخت/هزینه دارد، و اگر هنوز چیزی ثبت نشده، ماه جاری. */
+function carryStartKey(){
+  if(db.carryStart) return db.carryStart;
+  var f = firstDataKey();
+  if(f) return f;
+  var t = todayJalali();
+  return mkey(t.jy, t.jm);
+}
+/* مانده هر واحد در ابتدای ماه key. */
+function carryIn(key){
+  var out = {}, startKey = carryStartKey();
+  var from = monthIndex(startKey), to = monthIndex(key);
+  db.units.forEach(function(u){ out[u.id] = 0; });
+  if(to < from) return {prev:out, inChain:false, start:startKey};
+  db.units.forEach(function(u){ out[u.id] = num(u.openBal); });
+  for(var i = from; i < to; i++){
+    var k = keyFromIndex(i), rate = rateOf(k), mm = db.months[k];
+    db.units.forEach(function(u){
+      var paid = (mm && mm.payments) ? num(mm.payments[u.id]) : 0;
+      out[u.id] += personsOf(k, u.id) * rate - paid;
+    });
+  }
+  return {prev:out, inChain:true, start:startKey};
+}
+function compute(key, noCarry){
+  var m = monthData(key, false);
+  var units = db.units;
+  var rate = rateOf(key);
+  var shares = {}, persons = {}, catTotals = {}, expensesTotal = 0;
+  var personsTotal = 0;
+  units.forEach(function(u){
+    var p = personsOf(key, u.id);
+    persons[u.id] = p;
+    personsTotal += p;
+    shares[u.id] = p * rate;
+  });
+  var expItemsByCat = {};
+  db.categories.forEach(function(c){
+    var list = expItems(m, c.id);
+    expItemsByCat[c.id] = list;
+    var amt = 0;
+    list.forEach(function(it){ amt += num(it.amount); });
+    catTotals[c.id] = amt;
+    expensesTotal += amt;
+  });
+  var total = 0;
+  units.forEach(function(u){ total += shares[u.id]; });
+  var paid = {}, paidTotal = 0;
+  units.forEach(function(u){
+    paid[u.id] = num(m.payments[u.id]);
+    paidTotal += paid[u.id];
+  });
+  /* مانده از ماه‌های قبل و مانده پایان این ماه برای هر واحد */
+  var ci = noCarry ? {prev:{}, inChain:false} : carryIn(key);
+  var prev = {}, bal = {}, prevDebt = 0, prevCredit = 0, payable = 0, due = 0, credit = 0;
+  units.forEach(function(u){
+    var pv = ci.prev[u.id] || 0;
+    prev[u.id] = pv;
+    bal[u.id] = pv + shares[u.id] - paid[u.id];
+    if(pv > 0) prevDebt += pv; else prevCredit -= pv;
+    payable += Math.max(0, pv + shares[u.id]);
+    if(bal[u.id] > 0) due += bal[u.id]; else credit -= bal[u.id];
+  });
+  return {
+    key:key, m:m, catTotals:catTotals, total:total, shares:shares, paid:paid,
+    paidTotal:paidTotal, rate:rate, persons:persons,
+    personsTotal:personsTotal, expensesTotal:expensesTotal, expItems:expItemsByCat,
+    inChain:!!ci.inChain, prev:prev, bal:bal, prevDebt:prevDebt, prevCredit:prevCredit,
+    payable:payable, due:due, credit:credit
+  };
+}
+/* خلاصه ۱۲ ماه یک سال؛ فقط ماه‌هایی که در حساب هستند جمع زده می‌شوند. */
+function yearAgg(jy){
+  var A = {months:[], tTotal:0, tPaid:0, firstPrev:0, lastDue:0, lastCredit:0, firstSet:false,
+           perUnit:{}, paidY:{}, prevY:{}, endBal:{}};
+  db.units.forEach(function(u){ A.perUnit[u.id] = 0; A.paidY[u.id] = 0; A.prevY[u.id] = 0; A.endBal[u.id] = 0; });
+  var last = null;
+  for(var m = 1; m <= 12; m++){
+    var r = compute(mkey(jy, m));
+    A.months.push(r);
+    if(!r.inChain) continue;
+    A.tTotal += r.total; A.tPaid += r.paidTotal;
+    if(!A.firstSet){
+      A.firstSet = true; A.firstPrev = r.prevDebt;
+      db.units.forEach(function(u){ A.prevY[u.id] = r.prev[u.id] || 0; });
+    }
+    db.units.forEach(function(u){ A.perUnit[u.id] += (r.shares[u.id] || 0); A.paidY[u.id] += (r.paid[u.id] || 0); });
+    last = r;
+  }
+  if(last){
+    A.lastDue = last.due; A.lastCredit = last.credit;
+    db.units.forEach(function(u){ A.endBal[u.id] = last.bal[u.id] || 0; });
+  }
+  return A;
+}
+/* متن مانده برای جدول‌ها و چاپ */
+function balLabel(b){
+  return money(Math.abs(b)) + (b < -0.5 ? ' (بستانکار)' : '');
+}
+function prevCellHtml(p){
+  if(Math.abs(p) < 0.5) return '<span style="color:var(--muted)">' + money(0) + '</span><small>مانده قبل</small>';
+  if(p > 0) return '<span style="color:var(--bad)">' + money(p) + '</span><small>بدهی قبل</small>';
+  return '<span style="color:var(--ok)">' + money(-p) + '</span><small>بستانکار قبل</small>';
+}
+
+/* ============================================================
+   رندر
+   ============================================================ */
+function renderHeader(){
+  $('#bTitle').textContent = APP_NAME;
+  var sub = $('#bSub');
+  if(sub) sub.textContent = '🏢 ' + (db.building || 'مدیریت شارژ آپارتمان');
+  $('#mLabel').textContent = J_MONTHS[state.month-1] + ' ' + faDigits(state.year);
+  var cur = todayJalali().jy;
+  var start = Math.min(cur, state.year) - 3, end = Math.max(cur, state.year) + 3;
+  var html = '';
+  for(var y=start; y<=end; y++){
+    html += '<option value="' + y + '"' + (y === state.year ? ' selected' : '') + '>' + faDigits(y) + '</option>';
+  }
+  $('#ySel').innerHTML = html;
+  $('#curUnit').textContent = db.currency;
+  $('#sumMonthTag').textContent = J_MONTHS[state.month-1] + ' ' + faDigits(state.year);
+  $('#yearTag').textContent = 'سال ' + faDigits(state.year);
+}
+function balText(b){
+  if(Math.abs(b) < 0.5) return '<span class="chip ok">تسویه</span>';
+  if(b > 0) return '<span class="chip bad">' + money(b) + ' بدهکار</span>';
+  return '<span class="chip warn">' + money(-b) + ' بستانکار</span>';
+}
+function renderMonthly(){
+  var key = currentKey();
+  var r = compute(key);
+  var m = monthData(key, false);
+  var html = '';
+  db.categories.forEach(function(c){
+    var total = expTotal(m, c.id);
+    html += '<div class="exp-block" data-expblock="' + esc(c.id) + '">' +
+      '<div class="exp-head">' +
+        '<span class="lbl">' + esc(c.icon) + ' ' + esc(c.name) + '</span>' +
+        '<span class="exp-sum" data-expsum="' + esc(c.id) + '">' + money(total) + '</span>' +
+      '</div>' +
+      '<div class="exp-rows" data-exprows="' + esc(c.id) + '">' + expRowsHtml(c.id, m) + '</div>' +
+      '<button class="btn sec sm full" data-expadd="' + esc(c.id) + '" style="margin-top:6px">➕ افزودن ردیف</button>' +
+    '</div>';
+  });
+  $('#expenseList').innerHTML = html || '<div class="note">هنوز هزینه‌ای تعریف نشده است.</div>';
+  $('#rateInput').value = group(r.rate);
+  var ph = '';
+  db.units.forEach(function(u){
+    var share = r.shares[u.id] || 0, paid = r.paid[u.id] || 0;
+    var p = r.persons[u.id] || 0, pv = r.prev[u.id] || 0;
+    ph += '<div class="row">' +
+      '<span class="lbl">' + esc(u.name) + '<small>نفرات</small></span>' +
+      '<div style="flex:0 0 68px"><input class="numIn" type="text" inputmode="numeric" ' +
+        'data-persons="' + esc(u.id) + '" value="' + faDigits(p) + '" title="تعداد نفرات این ماه"></div>' +
+      '<span class="cell" data-share="' + esc(u.id) + '" style="color:var(--brand)">' + money(share) + '<small>شارژ ماه</small></span>' +
+      '<span class="cell" data-prev="' + esc(u.id) + '">' + prevCellHtml(pv) + '</span>' +
+      '<div class="grow" style="max-width:140px"><input class="amt" type="text" inputmode="numeric" ' +
+        'data-paid="' + esc(u.id) + '" value="' + (paid ? group(paid) : '') + '" placeholder="0"></div>' +
+      '<span class="cell" data-bal="' + esc(u.id) + '">' + balText(pv + share - paid) + '</span>' +
+    '</div>';
+  });
+  $('#payList').innerHTML = ph || '<div class="note">واحدی تعریف نشده است.</div>';
+  $('#mNote').value = m.note || '';
+  refreshNumbers();
+}
+/* یک ردیف هزینه: مبلغ + شرح، با دکمه حذف. */
+function expRowHtml(cid, it){
+  var eid = esc(it.id), c = esc(cid);
+  return '<div class="exp-row" data-exprow="' + eid + '">' +
+    '<div class="exp-amt"><input class="amt" type="text" inputmode="numeric" ' +
+      'data-examt="' + c + '" data-exid="' + eid + '" ' +
+      'value="' + (num(it.amount) ? group(num(it.amount)) : '') + '" placeholder="مبلغ" title="مبلغ"></div>' +
+    '<div class="exp-note"><input type="text" ' +
+      'data-exnote="' + c + '" data-exid="' + eid + '" ' +
+      'value="' + esc(it.note || '') + '" placeholder="شرح (مثلاً مرحله ۱ تعمیر)"></div>' +
+    '<button class="del" data-exdel="' + c + '" data-exid="' + eid + '" title="حذف این ردیف">✕</button>' +
+  '</div>';
+}
+function expRowsHtml(cid, m){
+  var list = expItems(m, cid);
+  if(!list.length) return '';
+  var out = '';
+  list.forEach(function(it){
+    if(!it.id) it.id = uid('ex');
+    out += expRowHtml(cid, it);
+  });
+  return out;
+}
+function refreshNumbers(){
+  var key = currentKey();
+  var r = compute(key);
+  $('#sumTotal').textContent = money(r.total);
+  $('#sumPersons').textContent = faDigits(r.personsTotal);
+  $('#sumPrev').textContent = money(r.prevDebt);
+  var spl = $('#sumPrevLbl');
+  if(spl) spl.textContent = (r.prevDebt < 0.5 && r.prevCredit > 0.5) ? 'بستانکاری از ماه‌های قبل' : 'مانده از ماه‌های قبل';
+  if(r.prevDebt < 0.5 && r.prevCredit > 0.5) $('#sumPrev').textContent = money(r.prevCredit);
+  $('#sumPayable').textContent = money(r.payable);
+  $('#sumPaid').textContent = money(r.paidTotal);
+  $('#sumDue').textContent = money(r.due);
+  $('#expHint').textContent = 'جمع هزینه‌ها: ' + money(r.expensesTotal) + ' ' + db.currency;
+  /* مانده صندوق: همیشه نشان داده می‌شود، حتی وقتی ماه خالی است. */
+  var fund = fundOf(key);
+  $('#sumFund').textContent = money(fund) + ' ' + db.currency;
+  /* همان عدد در نوار بالای صفحه هم می‌آید تا در همه بخش‌ها دیده شود. */
+  var top = $('#sumFundTop');
+  if(top) top.textContent = money(fund) + ' ' + db.currency;
+  var fchip = $('#fundChip');
+  if(fchip){
+    fchip.classList.toggle('pos', fund > 0.5);
+    fchip.classList.toggle('neg', fund < -0.5);
+  }
+  var fb = $('#fundBar');
+  if(fb){
+    fb.classList.toggle('pos', fund > 0.5);
+    fb.classList.toggle('neg', fund < -0.5);
+  }
+  var fsub = $('#sumFundSub');
+  if(fsub){
+    var delta = r.paidTotal - r.expensesTotal;
+    var sign = delta > 0 ? '+' : (delta < 0 ? '−' : '±');
+    var ftxt = 'موجودی اول دوره: ' + money(fundOpenGet()) + ' ' + db.currency +
+      ' | تغییر این ماه: ' + sign + money(Math.abs(delta)) + ' ' + db.currency;
+    if(r.paidTotal === 0 && r.expensesTotal === 0){ ftxt += ' (این ماه هنوز وصولی یا هزینه‌ای ثبت نشده)'; }
+    fsub.textContent = ftxt;
+  }
+  db.categories.forEach(function(c){
+    var el = $('[data-expsum="' + c.id + '"]');
+    if(el){
+      var t = r.catTotals[c.id] || 0;
+      el.textContent = money(t);
+      var block = $('[data-expblock="' + c.id + '"]');
+      if(block) block.classList.toggle('has-exp', t > 0);
+    }
+  });
+  var cmp = $('#sumCompare');
+  if(cmp){
+    var diff = r.expensesTotal - r.total;
+    var txt = 'نرخ این ماه: ' + money(r.rate) + ' × ' + faDigits(r.personsTotal) + ' نفر = ' + money(r.total) + ' ' + db.currency;
+    if(r.prevDebt > 0.5){
+      txt += ' — مانده بدهی از قبل: ' + money(r.prevDebt) + ' ' + db.currency + '، قابل وصول این ماه: ' + money(r.payable) + ' ' + db.currency;
+    }
+    if(r.prevCredit > 0.5){
+      txt += ' — بستانکاری (پیش‌پرداخت) واحدها از قبل: ' + money(r.prevCredit) + ' ' + db.currency;
+    }
+    if(r.expensesTotal > 0){
+      txt += ' — هزینه‌های ثبت‌شده: ' + money(r.expensesTotal) + ' ' + db.currency + '، ' +
+        (diff > 0 ? 'کسری ' + money(diff) : (diff < 0 ? 'مازاد ' + money(-diff) : 'برابر'));
+    }
+    cmp.textContent = txt;
+  }
+  db.units.forEach(function(u){
+    var share = r.shares[u.id] || 0, paid = r.paid[u.id] || 0, pv = r.prev[u.id] || 0;
+    var s = $('[data-share="' + u.id + '"]'), pc = $('[data-prev="' + u.id + '"]'), b = $('[data-bal="' + u.id + '"]');
+    if(s) s.innerHTML = money(share) + '<small>شارژ ماه</small>';
+    if(pc) pc.innerHTML = prevCellHtml(pv);
+    if(b) b.innerHTML = balText(pv + share - paid);
+  });
+}
+function renderUnits(){
+  var html = '';
+  db.units.forEach(function(u, i){
+    html += '<div class="row">' +
+      '<span class="lbl" style="min-width:26px">' + faDigits(i+1) + '</span>' +
+      '<div class="u-name"><input type="text" data-uf="name" data-uid="' + esc(u.id) + '" value="' + esc(u.name) + '" placeholder="نام واحد"></div>' +
+      '<div class="u-name"><input type="text" data-uf="owner" data-uid="' + esc(u.id) + '" value="' + esc(u.owner) + '" placeholder="مالک / ساکن"></div>' +
+      '<div style="flex:0 0 74px"><input class="numIn" type="text" inputmode="numeric" data-uf="persons" data-uid="' + esc(u.id) + '" value="' + faDigits(num(u.persons)) + '" title="تعداد نفرات"></div>' +
+      '<button class="del" data-del="' + esc(u.id) + '" title="حذف واحد">✕</button>' +
+    '</div>';
+  });
+  $('#unitList').innerHTML = html || '<div class="note">واحدی وجود ندارد.</div>';
+  var ob = '';
+  db.units.forEach(function(u){
+    var v = num(u.openBal), sd = v < 0 ? 'cr' : 'db', id = esc(u.id);
+    ob += '<div class="row">' +
+      '<span class="lbl">' + esc(u.name) + '</span>' +
+      '<div class="grow" style="max-width:170px"><input class="amt" type="text" inputmode="numeric" ' +
+        'data-uf="openAmt" data-uid="' + id + '" value="' + (v ? group(Math.abs(v)) : '') + '" placeholder="0" title="مبلغ مانده قبلی"></div>' +
+      '<div style="flex:0 0 104px"><select data-uf="openSide" data-uid="' + id + '" title="بدهکار یا بستانکار">' +
+        '<option value="db"' + (sd === 'db' ? ' selected' : '') + '>بدهکار</option>' +
+        '<option value="cr"' + (sd === 'cr' ? ' selected' : '') + '>بستانکار</option>' +
+      '</select></div>' +
+    '</div>';
+  });
+  $('#openBalList').innerHTML = ob || '<div class="note">واحدی وجود ندارد.</div>';
+  var sk = carryStartKey(), sp = String(sk).split('-');
+  var noData = !db.carryStart && !firstDataKey();
+  $('#carryNote').textContent = noData
+    ? 'هنوز پرداخت یا هزینه‌ای ثبت نشده؛ حساب مانده‌ها از ماه جاری (' + monthLabel(num(sp[0]), num(sp[1])) + ') شروع می‌شود.'
+    : 'حساب مانده‌ها از ' + monthLabel(num(sp[0]), num(sp[1])) + ' شروع می‌شود' +
+      (db.carryStart ? '.' : ' (اولین ماهی که در آن پرداخت یا هزینه ثبت کرده‌اید).');
+  var cats = '';
+  db.categories.forEach(function(c){
+    cats += '<div class="row">' +
+      '<span class="lbl">' + esc(c.icon) + ' ' + esc(c.name) + '</span>' +
+      '<div class="grow"><span class="note">هزینه مشاع ساختمان</span></div>' +
+      '<button class="del" data-delcat="' + esc(c.id) + '" title="حذف نوع هزینه">✕</button>' +
+    '</div>';
+  });
+  $('#catList').innerHTML = cats;
+  $('#setBuilding').value = db.building || '';
+  $('#setCurrency').value = db.currency || '';
+  $('#setRate').value = group(num(db.rate) || DEFAULT_RATE);
+  var fo = $('#setFundOpen');
+  if(fo){
+    var foVal = fundOpenGet();
+    fo.value = foVal ? group(foVal) : '';
+  }
+  var dd = '';
+  for(var d=1; d<=31; d++) dd += '<option value="' + d + '"' + (num(db.dueDay) === d ? ' selected' : '') + '>' + faDigits(d) + '</option>';
+  $('#setDueDay').innerHTML = dd;
+  $('#verNote').textContent = 'آخرین ذخیره: ' + jalaliStamp(new Date()) + ' — نسخه ' + (db.version || 1);
+  renderAutoBackup();
+}
+function renderYearly(){
+  var A = yearAgg(state.year), rows = '';
+  for(var m=1; m<=12; m++){
+    var r = A.months[m-1];
+    var has = r.inChain && (r.total > 0 || r.paidTotal > 0 || r.prevDebt > 0.5);
+    var mFund = fundOf(mkey(state.year, m));
+    var status = has
+      ? (r.due <= 0.5 ? '<span class="chip ok">تسویه</span>' : '<span class="chip bad">مانده</span>')
+      : (r.inChain ? '<span class="chip">خالی</span>' : '<span class="chip">قبل از شروع</span>');
+    rows += '<tr data-jump="' + m + '" style="cursor:pointer">' +
+      '<td style="text-align:right">' + J_MONTHS[m-1] + '</td>' +
+      '<td class="num">' + (has ? money(r.rate) : '—') + '</td>' +
+      '<td>' + (has ? faDigits(r.personsTotal) : '—') + '</td>' +
+      '<td class="num">' + (has ? money(r.total) : '—') + '</td>' +
+      '<td class="num">' + (has ? money(r.prevDebt) : '—') + '</td>' +
+      '<td class="num">' + (has ? money(r.paidTotal) : '—') + '</td>' +
+      '<td class="num">' + (has ? money(r.due) : '—') + '</td>' +
+      '<td class="num' + (mFund < -0.5 ? ' neg' : '') + '">' + money(mFund) + '</td>' +
+      '<td>' + status + '</td>' +
+    '</tr>';
+  }
+  rows += '<tr class="total"><td>جمع سال</td><td></td><td></td>' +
+    '<td class="num">' + money(A.tTotal) + '</td>' +
+    '<td class="num">' + money(A.firstPrev) + '</td>' +
+    '<td class="num">' + money(A.tPaid) + '</td>' +
+    '<td class="num">' + money(A.lastDue) + '</td>' +
+    '<td class="num">' + money(fundOf(mkey(state.year, 12))) + '</td><td></td></tr>';
+  $('#yearTable').innerHTML =
+    '<thead><tr><th>ماه</th><th>نرخ هر نفر</th><th>نفرات</th><th>جمع شارژ</th><th>مانده قبل</th><th>وصول‌شده</th><th>مانده</th><th>صندوق</th><th>وضعیت</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody>';
+  var ur = '';
+  db.units.forEach(function(u){
+    ur += '<tr><td style="text-align:right">' + esc(u.name) + '</td>' +
+      '<td>' + faDigits(num(u.persons)) + '</td>' +
+      '<td class="num">' + balLabel(A.prevY[u.id]) + '</td>' +
+      '<td class="num">' + money(A.perUnit[u.id]) + '</td>' +
+      '<td class="num">' + money(A.paidY[u.id]) + '</td>' +
+      '<td class="num">' + balLabel(A.endBal[u.id]) + '</td></tr>';
+  });
+  $('#yearUnitTable').innerHTML =
+    '<thead><tr><th>واحد</th><th>نفرات</th><th>مانده قبل از سال</th><th>جمع شارژ سال</th><th>جمع پرداختی</th><th>مانده پایان سال</th></tr></thead><tbody>' + ur + '</tbody>';
+}
+function renderAll(){
+  renderHeader(); renderMonthly(); renderUnits(); renderYearly();
+}
+function jalaliStamp(d){
+  try{
+    var j = d2j(g2d(d.getFullYear(), d.getMonth()+1, d.getDate()));
+    var p2 = function(x){ return x < 10 ? '0' + x : '' + x; };
+    return faDigits(j.jy + '/' + p2(j.jm) + '/' + p2(j.jd)) + ' - ' + faDigits(p2(d.getHours()) + ':' + p2(d.getMinutes()));
+  }catch(e){ return ''; }
+}
+function toast(msg){
+  var t = $('#toast');
+  t.firstElementChild.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+/* ============================================================
+   ناوبری ماه و تب‌ها
+   ============================================================ */
+function gotoMonth(jy, jm){
+  state.year = jy; state.month = jm;
+  renderHeader(); renderMonthly();
+}
+function setView(v){
+  state.view = v;
+  $$('.tab').forEach(function(b){ b.classList.toggle('on', b.dataset.view === v); });
+  $$('nav.bottom button').forEach(function(b){ b.classList.toggle('on', b.dataset.view === v); });
+  $$('.view').forEach(function(s){ s.classList.toggle('on', s.id === 'v-' + v); });
+  if(v === 'monthly') renderMonthly();
+  if(v === 'yearly') renderYearly();
+  if(v === 'units') renderUnits();
+  try{ window.scrollTo({top:0, behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
+}
+function bindChrome(){
+  $('#prevM').addEventListener('click', function(){
+    var m = state.month - 1, y = state.year;
+    if(m < 1){ m = 12; y--; }
+    gotoMonth(y, m);
+  });
+  $('#nextM').addEventListener('click', function(){
+    var m = state.month + 1, y = state.year;
+    if(m > 12){ m = 1; y++; }
+    gotoMonth(y, m);
+  });
+  $('#ySel').addEventListener('change', function(){ gotoMonth(num(this.value), state.month); });
+  $$('[data-view]').forEach(function(b){
+    b.addEventListener('click', function(){ setView(this.dataset.view); });
+  });
+  $('#mNote').addEventListener('change', function(){
+    monthData(currentKey(), true).note = this.value;
+    save();
+    toast('یادداشت ذخیره شد');
+  });
+  $('#clearPay').addEventListener('click', function(){
+    if(!confirm('پرداختی‌های ' + J_MONTHS[state.month-1] + ' صفر شود؟')) return;
+    monthData(currentKey(), true).payments = {};
+    save(); renderMonthly(); renderYearly();
+    toast('پرداختی‌های ماه صفر شد');
+  });
+  $('#rateApplyAll').addEventListener('click', function(){
+    var raw = $('#rateInput').value;
+    var r = (raw.trim() === '' || !isFinite(num(raw))) ? num(db.rate) : Math.max(0, num(raw));
+    if(!confirm('نرخ ' + money(r) + ' ' + db.currency + ' روی همه ماه‌ها اعمال شود؟')) return;
+    db.rate = r;
+    Object.keys(db.months).forEach(function(k){
+      if(db.months[k]) db.months[k].rate = null;
+    });
+    save(); renderMonthly(); renderYearly();
+    toast('نرخ همه ماه‌ها به‌روز شد');
+  });
+  $('#themeBtn').addEventListener('click', function(){
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+}
+
+/* ============================================================
+   ورودی مبالغ
+   ============================================================ */
+function bindAmounts(){
+  document.addEventListener('input', function(e){
+    var el = e.target;
+    if(!el.dataset) return;
+    var m = monthData(currentKey(), true);
+    if(el.dataset.examt != null){
+      var it = expItem(m, el.dataset.examt, el.dataset.exid, true);
+      if(it) it.amount = num(el.value);
+      refreshNumbers();
+      return;
+    }
+    if(el.dataset.exnote != null){
+      var it2 = expItem(m, el.dataset.exnote, el.dataset.exid, true);
+      if(it2) it2.note = el.value;
+      return;
+    }
+    if(!el.classList || !el.classList.contains('amt')) return;
+    if(el.dataset.paid != null) m.payments[el.dataset.paid] = num(el.value);
+    refreshNumbers();
+  }, true);
+  document.addEventListener('blur', function(e){
+    var el = e.target;
+    if(!el.dataset) return;
+    if(el.dataset.examt != null || el.dataset.exnote != null || (el.classList && el.classList.contains('amt'))){
+      if(el.dataset.examt != null){
+        var v0 = num(el.value);
+        el.value = v0 ? group(v0) : '';
+      }
+      save();
+      refreshNumbers();
+      renderYearly();
+    }
+  }, true);
+  var rate = $('#rateInput');
+  rate.addEventListener('input', function(){
+    var key = currentKey();
+    if(!db.months[key]) db.months[key] = {expenses:{}, payments:{}, persons:{}, rate:null, note:''};
+    db.months[key].rate = (this.value.trim() === '' || !isFinite(num(this.value))) ? null : Math.max(0, num(this.value));
+    refreshNumbers();
+  });
+  rate.addEventListener('blur', function(){
+    var key = currentKey();
+    if(!db.months[key]) db.months[key] = {expenses:{}, payments:{}, persons:{}, rate:null, note:''};
+    var v = (this.value.trim() === '' || !isFinite(num(this.value))) ? null : Math.max(0, num(this.value));
+    db.months[key].rate = (v != null && v !== num(db.rate)) ? v : null;
+    if(db.months[key].rate != null) toast('نرخ این ماه: ' + money(v));
+    this.value = group(rateOf(key));
+    save(); refreshNumbers(); renderYearly();
+  });
+}
+
+/* ============================================================
+   واحدها و انواع هزینه
+   ============================================================ */
+function bindUnits(){
+  document.addEventListener('input', function(e){
+    var el = e.target;
+    if(!el.dataset) return;
+    if(el.dataset.persons){
+      var key = currentKey();
+      if(!db.months[key]) db.months[key] = {expenses:{}, payments:{}, persons:{}, rate:null, note:''};
+      var pv = num(el.value);
+      db.months[key].persons[el.dataset.persons] = Math.max(0, Math.round(pv));
+      refreshNumbers();
+      return;
+    }
+    if(!el.dataset.uf || el.dataset.uf === 'persons' || el.dataset.uf === 'openAmt' || el.dataset.uf === 'openSide') return;
+    var u = db.units.filter(function(x){ return x.id === el.dataset.uid; })[0];
+    if(!u) return;
+    u[el.dataset.uf] = el.value;
+    save();
+  });
+  document.addEventListener('change', function(e){
+    var el = e.target;
+    if(el.dataset && el.dataset.persons){
+      var key = currentKey();
+      var m = monthData(key, true);
+      var p = Math.max(0, Math.round(num(el.value)));
+      m.persons[el.dataset.persons] = p;
+      var uu = db.units.filter(function(x){ return x.id === el.dataset.persons; })[0];
+      el.value = faDigits(p);
+      save(); refreshNumbers(); renderYearly();
+      toast('نفرات ' + (uu ? uu.name : '') + ' برای ' + J_MONTHS[state.month-1] + ' ثبت شد');
+      return;
+    }
+    if(el.dataset && (el.dataset.uf === 'openAmt' || el.dataset.uf === 'openSide')){
+      var ou = db.units.filter(function(x){ return x.id === el.dataset.uid; })[0];
+      var orow = el.closest ? el.closest('.row') : null;
+      if(ou && orow){
+        var amtEl = orow.querySelector('[data-uf="openAmt"]'), sideEl = orow.querySelector('[data-uf="openSide"]');
+        var oamt = Math.round(Math.abs(num(amtEl.value)));
+        ou.openBal = (sideEl.value === 'cr') ? -oamt : oamt;
+        amtEl.value = oamt ? group(oamt) : '';
+        save(); renderMonthly(); renderYearly();
+        toast('مانده قبلی ' + ou.name + ' ذخیره شد');
+      }
+      return;
+    }
+    if(el.dataset && el.dataset.uf === 'persons'){
+      var u = db.units.filter(function(x){ return x.id === el.dataset.uid; })[0];
+      if(u){
+        u.persons = Math.max(0, Math.round(num(el.value)));
+        el.value = faDigits(u.persons);
+        save(); renderMonthly(); renderYearly();
+        toast('نفرات واحد ذخیره شد');
+      }
+    }
+    if(el.id === 'setBuilding'){ db.building = el.value; save(); renderHeader(); }
+    else if(el.id === 'setCurrency'){ db.currency = el.value || 'تومان'; save(); renderAll(); }
+    else if(el.id === 'setDueDay'){ db.dueDay = num(el.value); save(); toast('ذخیره شد'); }
+    else if(el.id === 'setRate'){
+      var v = (el.value === '' || !isFinite(num(el.value))) ? DEFAULT_RATE : Math.max(0, num(el.value));
+      db.rate = v;
+      el.value = group(v);
+      save(); renderMonthly(); renderYearly();
+      toast('نرخ پیش‌فرض: ' + money(v));
+    }
+    else if(el.id === 'setFundOpen'){
+      var fv = num(el.value);
+      if(el.value !== '' && !isFinite(fv)){
+        toast('⚠️ مقدار واردشده معتبر نیست — عدد وارد کنید');
+        el.value = fundOpenGet() ? group(fundOpenGet()) : '';
+        return;
+      }
+      fundOpenSet(fv);
+      el.value = fv ? group(fv) : '';
+      refreshNumbers(); renderYearly();
+      toast('موجودی اول دوره: ' + money(fv));
+    }
+  });
+  document.addEventListener('click', function(e){
+    var t = e.target.closest ? e.target.closest('[data-del]') : null;
+    if(t){
+      var id = t.dataset.del;
+      var u = db.units.filter(function(x){ return x.id === id; })[0];
+      if(!u) return;
+      if(!confirm('واحد «' + u.name + '» حذف شود؟')) return;
+      db.units = db.units.filter(function(x){ return x.id !== id; });
+      Object.keys(db.months).forEach(function(k){
+        delete db.months[k].expenses[id];
+        if(db.months[k].payments) delete db.months[k].payments[id];
+      });
+      save(); renderAll();
+      toast('واحد حذف شد');
+      return;
+    }
+    var d = e.target.closest ? e.target.closest('[data-delcat]') : null;
+    if(d){
+      var cid = d.dataset.delcat;
+      var c = db.categories.filter(function(x){ return x.id === cid; })[0];
+      if(!c) return;
+      if(!confirm('نوع هزینه «' + c.name + '» حذف شود؟')) return;
+      db.categories = db.categories.filter(function(x){ return x.id !== cid; });
+      Object.keys(db.months).forEach(function(k){ delete db.months[k].expenses[cid]; });
+      save(); renderAll();
+      toast('نوع هزینه حذف شد');
+      return;
+    }
+    var addBtn = e.target.closest ? e.target.closest('[data-expadd]') : null;
+    if(addBtn){
+      var acid = addBtn.dataset.expadd;
+      var mm = monthData(currentKey(), true);
+      var list = expItems(mm, acid);
+      list.push({id: uid('ex'), amount: 0, note: ''});
+      mm.expenses[acid] = list;
+      var box = $('[data-exprows="' + acid + '"]');
+      if(box){ box.innerHTML = expRowsHtml(acid, mm); }
+      var last = box ? box.querySelector('.exp-row:last-child input') : null;
+      if(last) last.focus();
+      refreshNumbers();
+      return;
+    }
+    var delRow = e.target.closest ? e.target.closest('[data-exdel]') : null;
+    if(delRow){
+      var dcid = delRow.dataset.exdel, deid = delRow.dataset.exid;
+      var dm = monthData(currentKey(), true);
+      var dlist = expItems(dm, dcid).filter(function(it){ return it.id !== deid; });
+      if(dlist.length) dm.expenses[dcid] = dlist;
+      else delete dm.expenses[dcid];
+      var row = delRow.closest ? delRow.closest('.exp-row') : null;
+      if(row) row.remove();
+      save();
+      refreshNumbers();
+      renderYearly();
+      return;
+    }
+    var tr = e.target.closest ? e.target.closest('[data-jump]') : null;
+    if(tr){ gotoMonth(state.year, num(tr.dataset.jump)); setView('monthly'); }
+  });
+  $('#addUnit').addEventListener('click', function(){
+    if(db.units.length >= 40){ toast('حداکثر ۴۰ واحد'); return; }
+    db.units.push({id:uid('u'), name:'واحد ' + faDigits(db.units.length + 1), owner:'', persons:DEFAULT_PERSONS, openBal:0});
+    save(); renderAll();
+    toast('واحد اضافه شد');
+  });
+  $('#bulkPersons').addEventListener('click', function(){
+    var all = prompt('تعداد نفرات ساکن هر واحد را به ترتیب و با کاما وارد کنید:\n2,3,2,4,1,2,3,2,4,2', '');
+    if(all == null) return;
+    var arr = all.split(/[,\u060C\n]+/).map(function(x){ return num(x.trim()); }).filter(function(x){ return x >= 0 && x !== ''; });
+    if(!arr.length){ toast('عددی وارد نشد'); return; }
+    if(arr.length !== db.units.length && !confirm('تعداد اعداد با تعداد واحدها برابر نیست. ادامه؟')) return;
+    db.units.forEach(function(u, i){ if(arr[i] != null) u.persons = Math.max(0, Math.round(arr[i])); });
+    save(); renderAll();
+    toast('نفرات ثبت شد');
+  });
+  $('#addCat').addEventListener('click', function(){
+    var n = $('#newCatName').value.trim();
+    if(!n){ toast('نام هزینه را بنویسید'); return; }
+    db.categories.push({id:uid('c'), name:n, icon:'🧾', share:'equal'});
+    $('#newCatName').value = '';
+    save(); renderAll();
+    toast('هزینه اضافه شد');
+  });
+}
+
+/* ============================================================
+   گزارش چاپی / PDF
+   ============================================================ */
+function openPrint(){
+  setTimeout(function(){ window.print(); }, 80);
+}
+function monthSheet(key){
+  var p = key.split('-'), jy = num(p[0]), jm = num(p[1]);
+  var r = compute(key);
+  var head = '<div class="p-brand">' + APP_NAME + '</div>' +
+    '<div class="p-title">' + esc(db.building || 'صورت‌حساب شارژ آپارتمان') + '</div>' +
+    '<div class="p-sub">صورت‌حساب شارژ ' + J_MONTHS[jm-1] + ' ' + faDigits(jy) +
+    ' | نرخ شارژ هر نفر: ' + money(r.rate) + ' ' + esc(db.currency) +
+    ' | مهلت پرداخت: ' + faDigits(db.dueDay) + ' ' + J_MONTHS[jm-1] +
+    ' | تاریخ چاپ: ' + jalaliStamp(new Date()) + '</div>';
+  var ex = '<div class="p-h">۱) دفتر هزینه‌های مشاع ماه</div>' +
+    '<table><thead><tr><th style="width:55%">شرح هزینه</th><th>مبلغ (' + esc(db.currency) + ')</th></tr></thead><tbody>';
+  db.categories.forEach(function(c){
+    var list = (r.expItems && r.expItems[c.id]) || [];
+    var total = r.catTotals[c.id] || 0;
+    if(!list.length && !total) return;
+    ex += '<tr><td style="text-align:right">' + esc(c.name) + '</td><td class="num">' + money(total) + '</td></tr>';
+    if(list.length > 1){
+      list.forEach(function(it){
+        ex += '<tr><td style="text-align:right;padding-inline-end:18px;font-size:10px">' +
+          '↳ ' + esc(it.note || 'ردیف') + '</td><td class="num" style="font-size:10px">' +
+          money(num(it.amount)) + '</td></tr>';
+      });
+    }
+  });
+  ex += '</tbody><tfoot><tr><td>جمع هزینه‌های ثبت‌شده</td><td class="num">' + money(r.expensesTotal) + '</td></tr></tfoot></table>';
+  var pu = '<div class="p-h">۲) شارژ و وضعیت پرداخت واحدها</div>' +
+    '<table><thead><tr><th>واحد</th><th>نفرات</th><th>شارژ ماه</th><th>مانده قبل</th><th>پرداخت‌شده</th><th>مانده</th><th>وضعیت</th></tr></thead><tbody>';
+  db.units.forEach(function(u){
+    var s = r.shares[u.id] || 0, pd = r.paid[u.id] || 0, pv = r.prev[u.id] || 0, b = r.bal[u.id] || 0;
+    pu += '<tr><td>' + esc(u.name) + '</td><td>' + faDigits(r.persons[u.id] || 0) + '</td>' +
+      '<td class="num">' + money(s) + '</td><td class="num">' + balLabel(pv) + '</td><td class="num">' + money(pd) + '</td>' +
+      '<td class="num">' + balLabel(b) + '</td>' +
+      '<td>' + (Math.abs(b) < 0.5 ? 'تسویه' : (b > 0 ? 'بدهکار' : 'بستانکار')) + '</td></tr>';
+  });
+  pu += '</tbody><tfoot><tr><td colspan="2">جمع (' + faDigits(r.personsTotal) + ' نفر)</td><td class="num">' + money(r.total) + '</td>' +
+    '<td class="num">' + money(r.prevDebt) + '</td>' +
+    '<td class="num">' + money(r.paidTotal) + '</td><td class="num">' + money(r.due) + '</td><td></td></tr>';
+  if(r.prevCredit > 0.5 || r.credit > 0.5){
+    pu += '<tr><td colspan="3">جمع بستانکاری واحدها</td><td class="num">' + money(r.prevCredit) + '</td><td></td>' +
+      '<td class="num">' + money(r.credit) + '</td><td></td></tr>';
+  }
+  pu += '</tfoot></table>' +
+    '<div style="font-size:10px;margin-top:4px">مانده = مانده قبل + شارژ ماه − پرداخت‌شده. جمع‌های ستون‌های «مانده قبل» و «مانده» فقط بدهی واحدها را در بر می‌گیرد.</div>';
+  var note = r.m.note ? '<div class="p-h">۳) یادداشت</div><div style="font-size:11px">' + esc(r.m.note) + '</div>' : '';
+  var sign = '<div class="p-sign"><div>مهر و امضای مدیر ساختمان</div><div>امضای دریافت‌کننده</div></div>';
+  var fundBox = '<div class="p-fund">💰 مانده صندوق در پایان ' + J_MONTHS[jm-1] + ': <b>' +
+    money(fundOf(key)) + ' ' + esc(db.currency) + '</b> — موجودی اول دوره ' + money(fundOpenGet()) +
+    ' + وصولی این ماه ' + money(r.paidTotal) + ' − هزینه این ماه ' + money(r.expensesTotal) + '</div>';
+  return '<div class="p-sheet">' + head + ex + fundBox + pu + note + sign + '</div>';
+}
+function yearSheet(){
+  var head = '<div class="p-brand">' + APP_NAME + '</div>' +
+    '<div class="p-title">' + esc(db.building || 'گزارش سالانه شارژ آپارتمان') + '</div>' +
+    '<div class="p-sub">گزارش ۱۲ ماه سال ' + faDigits(state.year) + ' | تاریخ چاپ: ' + jalaliStamp(new Date()) + '</div>';
+  var A = yearAgg(state.year), rows = '';
+  for(var m=1; m<=12; m++){
+    var r = A.months[m-1];
+    var on = r.inChain;
+    rows += '<tr><td>' + J_MONTHS[m-1] + '</td><td class="num">' + (on ? money(r.rate) : '—') + '</td>' +
+      '<td>' + (on ? faDigits(r.personsTotal) : '—') + '</td><td class="num">' + (on ? money(r.total) : '—') + '</td>' +
+      '<td class="num">' + (on ? money(r.prevDebt) : '—') + '</td>' +
+      '<td class="num">' + (on ? money(r.paidTotal) : '—') + '</td>' +
+      '<td class="num">' + (on ? money(r.due) : '—') + '</td>' +
+      '<td class="num">' + money(fundOf(mkey(state.year, m))) + '</td></tr>';
+  }
+  rows += '<tr><td><b>جمع سال</b></td><td></td><td></td><td class="num"><b>' + money(A.tTotal) + '</b></td>' +
+    '<td class="num"><b>' + money(A.firstPrev) + '</b></td>' +
+    '<td class="num"><b>' + money(A.tPaid) + '</b></td><td class="num"><b>' + money(A.lastDue) + '</b></td>' +
+    '<td class="num"><b>' + money(fundOf(mkey(state.year, 12))) + '</b></td></tr>';
+  var t1 = '<div class="p-h">۱) عملکرد ماهانه</div><table><thead><tr><th>ماه</th><th>نرخ هر نفر</th>' +
+    '<th>نفرات</th><th>جمع شارژ</th><th>مانده قبل</th><th>وصول‌شده</th><th>مانده</th><th>صندوق</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<div style="font-size:10px;margin-top:4px">ماه‌های قبل از شروع حساب با «—» نشان داده شده‌اند. «مانده» در هر ماه شامل مانده ماه‌های قبل است. در سطر «جمع سال»، مانده قبل مربوط به اولین ماه حساب و مانده مربوط به پایان سال است.</div>';
+  var urows = '';
+  db.units.forEach(function(u){
+    urows += '<tr><td>' + esc(u.name) + '</td><td>' + esc(u.owner || '—') + '</td>' +
+      '<td>' + faDigits(num(u.persons)) + '</td>' +
+      '<td class="num">' + balLabel(A.prevY[u.id]) + '</td>' +
+      '<td class="num">' + money(A.perUnit[u.id]) + '</td>' +
+      '<td class="num">' + money(A.paidY[u.id]) + '</td>' +
+      '<td class="num">' + balLabel(A.endBal[u.id]) + '</td></tr>';
+  });
+  var t2 = '<div class="p-h">۲) جمع سالانه هر واحد</div><table><thead><tr><th>واحد</th><th>مالک/ساکن</th>' +
+    '<th>نفرات</th><th>مانده قبل از سال</th><th>جمع شارژ سال</th><th>جمع پرداختی</th><th>مانده پایان سال</th></tr></thead><tbody>' + urows + '</tbody></table>';
+  var sign = '<div class="p-sign"><div>مهر و امضای مدیر ساختمان</div><div>امضای بازرس/حسابرس</div></div>';
+  return '<div class="p-sheet">' + head + t1 + t2 + sign + '</div>';
+}
+function unitReceipt(u, jy, jm){
+  var key = mkey(jy, jm);
+  var r = compute(key);
+  var s = r.shares[u.id] || 0, pd = r.paid[u.id] || 0, pv = r.prev[u.id] || 0, bl = r.bal[u.id] || 0;
+  var head = '<div class="p-brand">' + APP_NAME + '</div>' +
+    '<div class="p-title">رسید شارژ — ' + esc(u.name) + '</div>' +
+    '<div class="p-sub">' + esc(db.building || '') + ' | ' + J_MONTHS[jm-1] + ' ' + faDigits(jy) +
+    ' | تاریخ چاپ: ' + jalaliStamp(new Date()) + '</div>';
+  var t = '<table><tbody>' +
+    '<tr><td style="text-align:right">مبلغ شارژ ماه</td><td class="num">' + money(s) + ' ' + esc(db.currency) + '</td></tr>' +
+    '<tr><td style="text-align:right">تعداد نفرات × نرخ</td><td class="num">' + faDigits(r.persons[u.id] || 0) + ' × ' + money(r.rate) + '</td></tr>' +
+    '<tr><td style="text-align:right">مانده از ماه‌های قبل' + (pv < -0.5 ? ' (بستانکار)' : (pv > 0.5 ? ' (بدهکار)' : '')) + '</td><td class="num">' + money(Math.abs(pv)) + ' ' + esc(db.currency) + '</td></tr>' +
+    '<tr><td style="text-align:right">جمع قابل پرداخت (شارژ ماه + مانده قبل)</td><td class="num">' + money(Math.max(0, pv + s)) + ' ' + esc(db.currency) + '</td></tr>' +
+    '<tr><td style="text-align:right">پرداخت‌شده</td><td class="num">' + money(pd) + ' ' + esc(db.currency) + '</td></tr>' +
+    '<tr><td style="text-align:right">مانده قابل پرداخت</td><td class="num">' + money(Math.max(0, bl)) + ' ' + esc(db.currency) + '</td></tr>' +
+    (bl < -0.5 ? '<tr><td style="text-align:right">بستانکاری برای ماه بعد</td><td class="num">' + money(-bl) + ' ' + esc(db.currency) + '</td></tr>' : '') +
+    '<tr><td style="text-align:right">مهلت پرداخت</td><td>' + faDigits(db.dueDay) + ' ' + J_MONTHS[jm-1] + ' ' + faDigits(jy) + '</td></tr>' +
+    '</tbody></table>';
+  var rows = '<div class="p-h">ریز هزینه‌های مشاع ماه (فقط جهت اطلاع)</div><table><thead><tr><th>شرح</th><th>مبلغ کل</th></tr></thead><tbody>';
+  db.categories.forEach(function(c){
+    var list = (r.expItems && r.expItems[c.id]) || [];
+    var total = r.catTotals[c.id] || 0;
+    if(!list.length && !total) return;
+    rows += '<tr><td style="text-align:right">' + esc(c.name) + '</td><td class="num">' + money(total) + '</td></tr>';
+    if(list.length > 1){
+      list.forEach(function(it){
+        rows += '<tr><td style="text-align:right;padding-inline-end:18px;font-size:10px">' +
+          '↳ ' + esc(it.note || 'ردیف') + '</td><td class="num" style="font-size:10px">' +
+          money(num(it.amount)) + '</td></tr>';
+      });
+    }
+  });
+  rows += '</tbody><tfoot><tr><td>جمع هزینه‌ها</td><td class="num">' + money(r.expensesTotal) + '</td></tr></tfoot></table>';
+  var rFund = '<div class="p-fund">💰 مانده صندوق در پایان این ماه: <b>' +
+    money(fundOf(key)) + ' ' + esc(db.currency) + '</b></div>';
+  var sign = '<div class="p-sign"><div>امضای مدیر ساختمان</div><div>امضای ساکن</div></div>';
+  return '<div class="p-sheet">' + head + t + rows + rFund + sign + '</div>';
+}
+function doPrintYear(){
+  $('#printArea').innerHTML = yearSheet();
+  openPrint();
+}
+function bindPrint(){
+  $('#printMonth').addEventListener('click', function(){
+    $('#printArea').innerHTML = monthSheet(currentKey());
+    openPrint();
+  });
+  $('#printYear').addEventListener('click', doPrintYear);
+  $('#printYearAll').addEventListener('click', doPrintYear);
+  $('#printYearUnits').addEventListener('click', function(){
+    var html = '';
+    db.units.forEach(function(u){ html += unitReceipt(u, state.year, state.month); });
+    $('#printArea').innerHTML = html;
+    openPrint();
+  });
+}
+
+/* ============================================================
+   پشتیبان‌گیری و بازیابی
+   ============================================================ */
+function download(name, text, type){
+  var blob = new Blob([text], {type:type || 'application/octet-stream'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function tsName(){
+  var d = new Date(), p2 = function(x){ return x < 10 ? '0' + x : '' + x; };
+  return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+}
+/* ============================================================
+   پشتیبان خودکار ماهانه
+   هر ماه یک‌بار (اولین اجرا در آن ماه) یک نسخه پشتیبان از کل داده‌ها
+   ساخته و در همین دستگاه آرشیو می‌شود. مستقل از داده اصلی است تا اگر
+   داده اصلی خراب/پاک شد، آرشیو سالم بماند.
+   ============================================================ */
+var BK_KEY = KEY + '_autobk';
+var BK_MAX = 24;
+function autoBkPrefs(){
+  // Default is ON: the feature was requested, so it works out of the box.
+  var p = { on:true, keep:12, last:'' };
+  try{
+    var raw = localStorage.getItem(KEY + '_autobkpref');
+    if(raw){
+      var o = JSON.parse(raw);
+      if(o && typeof o === 'object'){
+        p.on = (o.on === undefined) ? true : (o.on === true);
+        p.keep = Math.min(BK_MAX, Math.max(1, Math.round(num(o.keep) || 12)));
+        p.last = String(o.last || '');
+      }
+    }
+  }catch(e){}
+  return p;
+}
+function saveAutoBkPrefs(p){
+  try{ localStorage.setItem(KEY + '_autobkpref', JSON.stringify(p)); }catch(e){}
+}
+function readArchive(){
+  try{
+    var raw = localStorage.getItem(BK_KEY);
+    if(!raw) return [];
+    var a = JSON.parse(raw);
+    return (a && a.length) ? a : [];
+  }catch(e){ return []; }
+}
+function writeArchive(list){
+  try{
+    localStorage.setItem(BK_KEY, JSON.stringify(list));
+    return true;
+  }catch(e){
+    // Storage is full: drop the oldest entry and try once more.
+    if(list.length > 1){
+      list = list.slice(1);
+      try{ localStorage.setItem(BK_KEY, JSON.stringify(list)); return true; }catch(e2){}
+    }
+    return false;
+  }
+}
+function monthLabel(jy, jm){ return J_MONTHS[jm-1] + ' ' + faDigits(jy); }
+function bkStamp(){
+  var d = new Date(), p2 = function(x){ return x < 10 ? '0' + x : '' + x; };
+  var j = todayJalali();
+  return faDigits(j.jy + '/' + p2(j.jm) + '/' + p2(j.jd)) + ' - ' +
+         faDigits(p2(d.getHours()) + ':' + p2(d.getMinutes()));
+}
+/* Build one snapshot entry, labelled with the month that just ended. */
+function makeBackupEntry(t){
+  var data = JSON.stringify(db);
+  var ended = prevMonthOf(t);
+  var entry = {
+    id: uid('bk'),
+    at: new Date().toISOString(),
+    jy: ended.jy,
+    jm: ended.jm,
+    label: monthLabel(ended.jy, ended.jm),
+    reason: 'auto',
+    building: db.building || '',
+    bytes: data.length,
+    data: data
+  };
+  return entry;
+}
+function pushArchive(entry, keep){
+  var list = readArchive();
+  list.push(entry);
+  var max = Math.min(BK_MAX, Math.max(1, keep || 12));
+  while(list.length > max) list.shift();
+  return writeArchive(list);
+}
+/* The month that ended: if we are in month m, the previous month closed. */
+function prevMonthOf(t){
+  var y = t.jy, m = t.jm - 1;
+  if(m < 1){ m = 12; y--; }
+  return {jy:y, jm:m};
+}
+function autoBackupDue(prefs, t){
+  if(!prefs.on) return false;
+  var cur = mkey(t.jy, t.jm);
+  if(prefs.last === cur) return false;
+  return true;
+}
+function runAutoBackup(force){
+  var prefs = autoBkPrefs();
+  var t = todayJalali();
+  if(!force && !autoBackupDue(prefs, t)) return false;
+  // Nothing worth archiving yet: avoids a junk first-run backup.
+  if(!force && !Object.keys(db.months || {}).length) return false;
+  var entry = makeBackupEntry(t);
+  if(!pushArchive(entry, prefs.keep)) return false;
+  prefs.last = mkey(t.jy, t.jm);
+  saveAutoBkPrefs(prefs);
+  return true;
+}
+function archiveSummary(){
+  var list = readArchive();
+  var total = 0;
+  list.forEach(function(e){ total += (e.bytes || 0); });
+  return {count:list.length, bytes:total};
+}
+function renderAutoBackup(){
+  var prefs = autoBkPrefs();
+  var on = $('#autoBkOn'), lbl = $('#autoBkOnLbl');
+  if(!on) return;
+  on.checked = prefs.on;
+  lbl.textContent = prefs.on ? 'روشن' : 'خاموش';
+  $('#autoBkKeep').value = faDigits(prefs.keep);
+  var list = readArchive();
+  var html = '';
+  for(var i=list.length-1; i>=0; i--){
+    var e = list[i];
+    html += '<div class="bk-item" data-bkid="' + esc(e.id) + '">' +
+      '<div class="bk-main"><b>' + esc(e.label || '—') + '</b>' +
+      '<span>' + esc(bkStampOf(e)) + ' — ' + faDigits(Math.round((e.bytes || 0) / 1024)) + ' کیلوبایت</span></div>' +
+      '<button class="btn sec" data-bkdl="' + esc(e.id) + '">⬇️ فایل</button>' +
+      '<button class="btn sec" data-bkrs="' + esc(e.id) + '">♻️ بازگردانی</button>' +
+      '<button class="del" data-bkdel="' + esc(e.id) + '" title="حذف نسخه">✕</button>' +
+    '</div>';
+  }
+  $('#autoBkList').innerHTML = html ||
+    '<div class="bk-empty">هنوز نسخه پشتیبانی ساخته نشده است.</div>';
+  var sum = archiveSummary();
+  var st = $('#autoBkState');
+  if(st) st.textContent = sum.count ? faDigits(sum.count) + ' نسخه' : '';
+  var note = $('#autoBkNote');
+  if(note){
+    var txt;
+    if(!prefs.on){
+      txt = 'پشتیبان خودکار خاموش است.';
+    } else if(prefs.last){
+      txt = 'آخرین پشتیبان خودکار: ' + bkStampLast(prefs.last) + ' — پشتیبان بعدی در ابتدای ماه آینده.';
+    } else {
+      txt = 'پشتیبان خودکار روشن شد؛ در اولین باز کردن برنامه در هر ماه یک نسخه ساخته می‌شود.';
+    }
+    note.textContent = txt;
+  }
+}
+function bkStampOf(e){
+  if(!e || !e.at) return '—';
+  try{
+    var d = new Date(e.at), p2 = function(x){ return x < 10 ? '0' + x : '' + x; };
+    var j = d2j(g2d(d.getFullYear(), d.getMonth()+1, d.getDate()));
+    return faDigits(j.jy + '/' + p2(j.jm) + '/' + p2(j.jd)) + ' - ' + faDigits(p2(d.getHours()) + ':' + p2(d.getMinutes()));
+  }catch(err){ return '—'; }
+}
+function bkStampLast(key){
+  var p = String(key || '').split('-');
+  if(p.length < 2) return '—';
+  return monthLabel(num(p[0]), num(p[1]));
+}
+function restoreArchiveEntry(id){
+  var list = readArchive();
+  var e = list.filter(function(x){ return x.id === id; })[0];
+  if(!e){ toast('نسخه پیدا نشد'); return; }
+  if(!confirm('اطلاعات فعلی با نسخه «' + (e.label || '') + '» جایگزین شود؟')) return;
+  try{
+    var p = JSON.parse(e.data);
+    if(!p || !p.units || !p.categories) throw new Error('ساختار نامعتبر');
+    db = p; normalize(); save(); renderAll(); setView('settings');
+    toast('بازگردانی از نسخه ' + (e.label || '') + ' انجام شد');
+  }catch(err){ alert('خطا در بازگردانی: ' + err.message); }
+}
+function bindAutoBackup(){
+  if(!$('#autoBkOn')) return;
+  $('#autoBkOn').addEventListener('change', function(){
+    var prefs = autoBkPrefs();
+    prefs.on = this.checked;
+    saveAutoBkPrefs(prefs);
+    if(prefs.on){
+      var made = runAutoBackup(false);
+      toast(made ? 'پشتیبان خودکار روشن شد و یک نسخه گرفته شد' : 'پشتیبان خودکار روشن شد');
+    } else {
+      toast('پشتیبان خودکار خاموش شد');
+    }
+    renderAutoBackup();
+  });
+  $('#autoBkKeep').addEventListener('change', function(){
+    var prefs = autoBkPrefs();
+    prefs.keep = Math.min(BK_MAX, Math.max(1, Math.round(num(this.value) || 12)));
+    saveAutoBkPrefs(prefs);
+    this.value = faDigits(prefs.keep);
+    var list = readArchive();
+    while(list.length > prefs.keep) list.shift();
+    writeArchive(list);
+    renderAutoBackup();
+    toast('تعداد نسخه‌های نگهداری: ' + faDigits(prefs.keep));
+  });
+  $('#autoBkNow').addEventListener('click', function(){
+    var t = todayJalali();
+    var prefs = autoBkPrefs();
+    var entry = makeBackupEntry(t);
+    if(pushArchive(entry, prefs.keep)){
+      download('apartment-backup-' + tsName() + '.json', entry.data, 'application/json');
+      toast('نسخه پشتیبان گرفته و دانلود شد');
+    } else {
+      toast('⚠️ حافظه مرورگر پر است');
+    }
+    renderAutoBackup();
+  });
+  $('#autoBkAll').addEventListener('click', function(){
+    var list = readArchive();
+    if(!list.length){ toast('نسخه‌ای برای ذخیره وجود ندارد'); return; }
+    download('apartment-archive-' + tsName() + '.json', JSON.stringify(list, null, 2), 'application/json');
+    toast('فایل آرشیو ' + faDigits(list.length) + ' نسخه‌ای دانلود شد');
+  });
+  $('#autoBkList').addEventListener('click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('button') : null;
+    if(!b) return;
+    var list = readArchive();
+    if(b.dataset.bkdl){
+      var e = list.filter(function(x){ return x.id === b.dataset.bkdl; })[0];
+      if(!e) return;
+      download('apartment-backup-' + (e.label || 'bk').replace(/\s+/g, '-') + '.json', e.data, 'application/json');
+      toast('فایل نسخه پشتیبان دانلود شد');
+      return;
+    }
+    if(b.dataset.bkrs){ restoreArchiveEntry(b.dataset.bkrs); return; }
+    if(b.dataset.bkdel){
+      var id = b.dataset.bkdel;
+      if(!confirm('این نسخه پشتیبان حذف شود؟')) return;
+      writeArchive(list.filter(function(x){ return x.id !== id; }));
+      renderAutoBackup();
+      toast('نسخه حذف شد');
+    }
+  });
+  // The app may stay open across a month boundary, so also check when it
+  // regains focus and on a slow interval while it is open.
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible'){
+      if(runAutoBackup(false)){ renderAutoBackup(); toast('پشتیبان خودکار ماهانه گرفته شد'); }
+    }
+  });
+  setInterval(function(){
+    if(document.visibilityState === 'visible'){
+      if(runAutoBackup(false)){ renderAutoBackup(); toast('پشتیبان خودکار ماهانه گرفته شد'); }
+    }
+  }, 6 * 60 * 60 * 1000);
+  renderAutoBackup();
+}
+function csvEscape(v){ return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
+function bindBackup(){
+  $('#expJson').addEventListener('click', function(){
+    download('apartment-backup-' + tsName() + '.json', JSON.stringify(db, null, 2), 'application/json');
+    toast('فایل پشتیبان دانلود شد');
+  });
+  $('#impJson').addEventListener('click', function(){ $('#fileIn').click(); });
+  $('#fileIn').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0];
+    if(!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      try{
+        var p = JSON.parse(rd.result);
+        if(!p || !p.units || !p.categories) throw new Error('ساختار فایل نامعتبر است');
+        if(!confirm('داده‌های فعلی با محتوای این فایل جایگزین شود؟')) return;
+        db = p; normalize(); save(); renderAll(); setView('monthly');
+        toast('بازگردانی انجام شد');
+      }catch(err){ alert('خطا در خواندن فایل: ' + err.message); }
+    };
+    rd.readAsText(f);
+    e.target.value = '';
+  });
+  $('#expCsv').addEventListener('click', function(){
+    var out = [];
+    out.push([csvEscape('گزارش شارژ ' + db.building + ' - سال ' + state.year)].join(','));
+    out.push('');
+    out.push(['ماه'].concat(db.categories.map(function(c){ return c.name; }))
+      .concat(['نرخ هر نفر','جمع نفرات','جمع شارژ','مانده قبل','جمع هزینه ثبت‌شده','جمع پرداختی','مانده','مانده صندوق'])
+      .concat(db.units.map(function(u){ return 'نفرات ' + u.name; }))
+      .concat(db.units.map(function(u){ return 'شارژ ' + u.name; }))
+      .concat(db.units.map(function(u){ return 'پرداختی ' + u.name; }))
+      .concat(db.units.map(function(u){ return 'مانده قبل ' + u.name + ' (منفی=بستانکار)'; }))
+      .concat(db.units.map(function(u){ return 'مانده ' + u.name + ' (منفی=بستانکار)'; }))
+      .map(csvEscape).join(','));
+    for(var m=1; m<=12; m++){
+      var r = compute(mkey(state.year, m));
+      out.push([J_MONTHS[m-1]]
+        .concat(db.categories.map(function(c){ return r.catTotals[c.id] || 0; }))
+        .concat([r.rate, r.personsTotal, r.total, r.prevDebt, r.expensesTotal, r.paidTotal, r.due])
+        .concat([fundOf(mkey(state.year, m))])
+        .concat(db.units.map(function(u){ return r.persons[u.id] || 0; }))
+        .concat(db.units.map(function(u){ return r.shares[u.id] || 0; }))
+        .concat(db.units.map(function(u){ return r.paid[u.id] || 0; }))
+        .concat(db.units.map(function(u){ return r.prev[u.id] || 0; }))
+        .concat(db.units.map(function(u){ return r.bal[u.id] || 0; }))
+        .map(csvEscape).join(','));
+    }
+    download('apartment-' + state.year + '.csv', '\uFEFF' + out.join('\r\n'), 'text/csv;charset=utf-8');
+    toast('فایل CSV اکسل دانلود شد');
+  });
+  $('#demo').addEventListener('click', function(){
+    if(!confirm('اعداد نمونه در ماه جاری درج شود؟')) return;
+    var m = monthData(currentKey(), true);
+    var sample = {
+      elevator:[{amount:2500000, note:'سرویس ماهانه'}],
+      electricity:[{amount:1800000, note:'قبض مشاع'}],
+      water:[{amount:900000, note:'قبض مشاع'}],
+      cleaning:[{amount:3200000, note:'نظافت ماه'}],
+      repairs:[{amount:900000, note:'تعمیر درب پارکینگ'}, {amount:600000, note:'تعویض لامپ راه‌پله'}]
+    };
+    db.categories.forEach(function(c){
+      if(sample[c.id] == null) return;
+      m.expenses[c.id] = sample[c.id].map(function(it){
+        return {id: uid('ex'), amount: it.amount, note: it.note};
+      });
+    });
+    save(); renderAll();
+    toast('اعداد نمونه درج شد (تعمیرات دو ردیف دارد)');
+  });
+  $('#prune').addEventListener('click', function(){
+    var t = todayJalali();
+    var limit = t.jy * 12 + t.jm - 13;
+    var del = Object.keys(db.months).filter(function(k){
+      var p = k.split('-');
+      return (num(p[0]) * 12 + num(p[1])) < limit;
+    });
+    if(!del.length){ toast('داده قدیمی‌تری وجود ندارد'); return; }
+    if(!confirm('داده ' + faDigits(del.length) + ' ماه قدیمی حذف شود؟')) return;
+    /* اگر ماه‌های قدیمی حذف شوند، اثرشان روی صندوق از بین می‌رود. پس مجموع
+       وصولی منهای هزینه آن ماه‌ها به موجودی اول دوره اضافه می‌شود تا مانده
+       صندوق بعد از حذف هم دقیقاً همان عدد قبلی بماند. */
+    var carry = 0;
+    del.forEach(function(k){
+      var rr = compute(k, true);
+      carry += (rr.paidTotal - rr.expensesTotal);
+    });
+    /* مانده بدهی/بستانکاری واحدها هم باید بعد از حذف همان بماند: مانده اول
+       اولین ماه باقی‌مانده، به‌عنوان «مانده قبلی» هر واحد ثبت می‌شود. */
+    var cutoffKey = keyFromIndex(limit - 1);
+    if(monthIndex(carryStartKey()) < monthIndex(cutoffKey)){
+      var snap = carryIn(cutoffKey).prev;
+      db.units.forEach(function(u){ u.openBal = Math.round(snap[u.id] || 0); });
+      db.carryStart = cutoffKey;
+    }
+    del.forEach(function(k){ delete db.months[k]; });
+    if(carry !== 0){
+      db.fundOpen = num(db.fundOpen) + carry;
+      if(!isFinite(db.fundOpen)) db.fundOpen = 0;
+      var fo = $('#setFundOpen');
+      if(fo){
+        var foVal = num(db.fundOpen);
+        fo.value = foVal ? group(foVal) : '';
+      }
+    }
+    save(); renderAll();
+    toast('داده‌های قدیمی حذف شد (اثر آن‌ها در مانده صندوق و مانده واحدها حفظ شد)');
+  });
+  $('#reset').addEventListener('click', function(){
+    if(!confirm('همه داده‌ها پاک و به حالت اولیه برگردد؟')) return;
+    if(!confirm('این کار قابل بازگشت نیست. مطمئنید؟')) return;
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    db = defaultDb(); save();
+    var t = todayJalali();
+    state.year = t.jy; state.month = t.jm;
+    renderAll(); setView('monthly');
+    toast('داده‌ها پاک شد');
+  });
+}
+
+/* ============================================================
+   نصب روی صفحه اصلی (PWA)
+   نکته: کروم فقط روی https یا localhost اجازه نصب واقعی می‌دهد؛
+   روی file:// نه service worker ثبت می‌شود و نه گزینه نصب وجود دارد.
+   ============================================================ */
+var IS_FILE = (location.protocol === 'file:');
+var IS_LOCALHOST = (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+var IS_SECURE = (location.protocol === 'https:') || (location.protocol === 'http:' && IS_LOCALHOST);
+var deferredPrompt = null;
+function isStandalone(){
+  try{
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+           (window.navigator && window.navigator.standalone === true);
+  }catch(e){ return false; }
+}
+function registerSW(){
+  if(IS_FILE) return;
+  if(!IS_SECURE) return;
+  if(!('serviceWorker' in navigator)) return;
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+function bindInstall(){
+  var btn = $('#installBtn'), hint = $('#installHint');
+  if(!btn || !hint) return;
+
+  function tip(html){ hint.innerHTML = html; }
+  function showBtn(on){ btn.style.display = on ? '' : 'none'; }
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    deferredPrompt = e;
+    showBtn(true);
+    tip('برای نصب، دکمه بالا را بزنید. پس از نصب، آیکون برنامه در صفحه اصلی گوشی می‌نشیند و بدون نوار آدرس باز می‌شود.');
+  });
+
+  window.addEventListener('appinstalled', function(){
+    deferredPrompt = null;
+    showBtn(false);
+    update();
+    toast('برنامه روی صفحه اصلی نصب شد');
+  });
+
+  btn.addEventListener('click', function(){
+    if(!deferredPrompt){
+      update();
+      return;
+    }
+    deferredPrompt.prompt();
+    var p = deferredPrompt;
+    deferredPrompt = null;
+    if(p.userChoice && p.userChoice.then){
+      p.userChoice.then(function(){ showBtn(false); update(); });
+    } else {
+      showBtn(false); update();
+    }
+  });
+
+  function update(){
+    if(isStandalone()){
+      showBtn(false);
+      tip('✅ این صفحه در حالت نصب‌شده (مستقل) اجرا می‌شود.');
+      return;
+    }
+    if(deferredPrompt){
+      showBtn(true);
+      tip('برای نصب، دکمه بالا را بزنید.');
+      return;
+    }
+    showBtn(false);
+
+    var ua = navigator.userAgent || '';
+
+    if(IS_FILE){
+      tip('⚠️ این صفحه از روی فایل (file://) باز شده است و کروم اجازه «نصب» از فایل را نمی‌دهد. ' +
+          'در این حالت نهایتاً می‌توانید از منوی مرورگر «افزودن به صفحه اصلی ← ایجاد میان‌بر» بزنید، ' +
+          'که فقط یک میان‌بر است و داخل خود کروم باز می‌شود، نه اپ مستقل. ' +
+          'برای نصب واقعی، برنامه باید روی یک آدرس <b>https</b> باز شود (توضیح کامل در README.md).');
+      return;
+    }
+    if(!IS_SECURE){
+      tip('⚠️ این آدرس امن نیست، پس کروم اجازه نصب نمی‌دهد. کروم فقط آدرس‌های <b>https</b> یا ' +
+          '<b>localhost</b> را قبول می‌کند؛ حتی آدرس داخل وای‌فای مثل http://192.168.x.x هم نصب نمی‌شود. ' +
+          'راهنما: README.md');
+      return;
+    }
+    if(/iPhone|iPad|iPod/i.test(ua)){
+      tip('📱 در آیفون فقط مرورگر <b>Safari</b> از نصب پشتیبانی می‌کند: ' +
+          'دکمه اشتراک‌گذاری ← «Add to Home Screen».');
+      return;
+    }
+    if(/Android/i.test(ua) && /Chrome/i.test(ua)){
+      tip('📱 در کروم اندروید: منوی ⋮ ← «نصب برنامه» (یا «افزودن به صفحه اصلی»). ' +
+          'اگر گزینه نصب را نمی‌بینید، این صفحه را یک‌بار ببندید و دوباره باز کنید.');
+      return;
+    }
+    tip('برای نصب، از منوی مرورگر گزینه <b>Install app</b> یا «افزودن به صفحه اصلی» را بزنید.');
+  }
+
+  update();
+  try{ window.matchMedia('(display-mode: standalone)').addEventListener('change', update); }catch(e){}
+}
+
+/* ============================================================
+   پوسته و راه‌اندازی
+   ============================================================ */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  $('#themeBtn').textContent = (t === 'dark') ? '☀️' : '🌙';
+  try{ localStorage.setItem(KEY + '_theme', t); }catch(e){}
+}
+function boot(){
+  load();
+  var t = todayJalali();
+  state.year = t.jy; state.month = t.jm;
+  bindChrome(); bindAmounts(); bindUnits(); bindPrint(); bindBackup(); bindInstall();
+  bindAutoBackup();
+  if(runAutoBackup(false)){
+    renderAutoBackup();
+    toast('پشتیبان خودکار ماهانه گرفته شد');
+  }
+  var th = null;
+  try{ th = localStorage.getItem(KEY + '_theme'); }catch(e){}
+  if(!th) th = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  applyTheme(th);
+  renderAll();
+  setView('monthly');
+  showWelcome();
+  registerSW();
+}
+function showWelcome(){
+  var seen = null;
+  try{ seen = localStorage.getItem(KEY + '_seen'); }catch(e){}
+  if(seen) return;
+  try{ localStorage.setItem(KEY + '_seen', '1'); }catch(e){}
+  var box = document.createElement('div');
+  box.id = 'welcome';
+  box.innerHTML =
+    '<div style="position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.55);' +
+      'display:flex;align-items:center;justify-content:center;padding:16px">' +
+      '<div style="background:var(--card);color:var(--ink);border-radius:16px;padding:16px;max-width:440px;width:100%;' +
+        'box-shadow:0 20px 50px rgba(0,0,0,.35)">' +
+        '<div style="font-weight:800;font-size:1rem;margin-bottom:2px">' + APP_NAME + '</div>' +
+        '<div style="font-size:.74rem;color:var(--muted);margin-bottom:10px">مدیریت شارژ آپارتمان</div>' +
+        '<ul style="margin:0 0 12px;padding-inline-start:18px;font-size:.84rem;line-height:2">' +
+          '<li>اطلاعات خودکار در همین مرورگر ذخیره می‌شود و به اینترنت نیازی نیست.</li>' +
+          '<li>مانده (بدهی یا بستانکاری) هر واحد در پایان هر ماه، خودکار به ماه بعد منتقل می‌شود.</li>' +
+          '<li>در گوشی: از بخش «تنظیمات ← نصب روی صفحه اصلی گوشی» راهنمای نصب را ببینید.</li>' +
+          '<li>خروجی PDF/اکسل و پشتیبان‌گیری از بخش «گزارش سال» و «تنظیمات» در دسترس است.</li>' +
+          '<li>در ابتدای هر ماه، یک نسخه پشتیبان خودکار ساخته می‌شود (تنظیمات ← پشتیبان خودکار ماهانه).</li>' +
+          '<li>برای اطمینان بیشتر، هر ماه یک‌بار «خروجی فایل پشتیبان» هم بگیرید.</li>' +
+        '</ul>' +
+        '<button class="btn" id="welcomeOk">متوجه شدم</button>' +
+      '</div></div>';
+  document.body.appendChild(box);
+  $('#welcomeOk').addEventListener('click', function(){
+    var w = $('#welcome');
+    if(w) w.remove();
+  });
+}
+boot();
+</script>
+</body>
+</html>
