@@ -96,6 +96,19 @@ header.top{
 .fund-bar.pos .fund-main b{color:var(--ok)}
 .fund-bar.neg .fund-main b{color:var(--bad)}
 .fund-sub{font-size:.72rem;color:var(--muted);margin-top:4px;line-height:1.7}
+.fund-chip{
+  display:flex;align-items:center;gap:8px;margin-top:7px;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);
+  border-radius:11px;padding:6px 10px
+}
+.fund-chip .fc-lbl{font-size:.74rem;font-weight:700;white-space:nowrap}
+.fund-chip b{
+  margin-inline-start:auto;font-size:.92rem;font-weight:800;
+  direction:ltr;letter-spacing:-.2px;white-space:nowrap;max-width:58%;
+  overflow:hidden;text-overflow:ellipsis
+}
+.fund-chip.pos b{color:#c9ffe0}
+.fund-chip.neg b{color:#ffd2d2}
 .row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .row:last-child{border-bottom:0}
 .row .lbl{font-size:.88rem;font-weight:600;min-width:96px}
@@ -264,6 +277,10 @@ tr.total td{font-weight:800;background:var(--bg)}
       <button class="icon-btn" id="themeBtn" title="روشن/تیره">🌙</button>
     </div>
     <div class="top-sub" id="bSub"></div>
+    <div class="fund-chip" id="fundChip">
+      <span class="fc-lbl">💰 مانده صندوق</span>
+      <b id="sumFundTop">۰</b>
+    </div>
     <div class="month-bar">
       <button id="prevM" title="ماه قبل">◀</button>
       <div class="m-label" id="mLabel">—</div>
@@ -911,6 +928,14 @@ function refreshNumbers(){
   /* مانده صندوق: همیشه نشان داده می‌شود، حتی وقتی ماه خالی است. */
   var fund = fundOf(key);
   $('#sumFund').textContent = money(fund) + ' ' + db.currency;
+  /* همان عدد در نوار بالای صفحه هم می‌آید تا در همه بخش‌ها دیده شود. */
+  var top = $('#sumFundTop');
+  if(top) top.textContent = money(fund) + ' ' + db.currency;
+  var fchip = $('#fundChip');
+  if(fchip){
+    fchip.classList.toggle('pos', fund > 0.5);
+    fchip.classList.toggle('neg', fund < -0.5);
+  }
   var fb = $('#fundBar');
   if(fb){
     fb.classList.toggle('pos', fund > 0.5);
