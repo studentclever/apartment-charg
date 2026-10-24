@@ -82,6 +82,20 @@ header.top{
 .stat.brand b{color:var(--brand)}
 .stat.ok b{color:var(--ok)}
 .stat.bad b{color:var(--bad)}
+.fund-bar{
+  margin-top:8px;padding:10px 12px;border-radius:11px;
+  background:var(--bg);border:1.5px solid var(--line)
+}
+.fund-bar.pos{background:var(--ok-soft);border-color:transparent}
+.fund-bar.neg{background:var(--bad-soft);border-color:transparent}
+.fund-main{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fund-lbl{font-size:.82rem;font-weight:700}
+.fund-main b{
+  margin-inline-start:auto;font-size:1.12rem;font-weight:800;direction:ltr;letter-spacing:-.3px
+}
+.fund-bar.pos .fund-main b{color:var(--ok)}
+.fund-bar.neg .fund-main b{color:var(--bad)}
+.fund-sub{font-size:.72rem;color:var(--muted);margin-top:4px;line-height:1.7}
 .row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .row:last-child{border-bottom:0}
 .row .lbl{font-size:.88rem;font-weight:600;min-width:96px}
@@ -180,6 +194,7 @@ table{width:100%;border-collapse:collapse;font-size:.82rem}
 th,td{padding:7px 5px;text-align:center;border-bottom:1px solid var(--line)}
 th{font-size:.72rem;color:var(--muted);font-weight:700}
 td.num{direction:ltr;font-weight:700}
+td.num.neg{color:var(--bad)}
 tr.total td{font-weight:800;background:var(--bg)}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .toast{
@@ -213,6 +228,10 @@ tr.total td{font-weight:800;background:var(--bg)}
 .p-sheet th{background:#eee;font-weight:800;color:#000}
 .p-sheet .num{direction:ltr}
 .p-sheet tfoot td{font-weight:800;background:#f6f6f6}
+.p-fund{
+  margin-top:10px;padding:7px 9px;border:1px solid #333;
+  background:#f6f6f6;font-size:11px
+}
 .p-sign{display:flex;gap:14px;margin-top:26px;font-size:11px}
 .p-sign div{flex:1;border-top:1px solid #333;padding-top:4px;text-align:center}
 @media (max-width:760px){
@@ -220,13 +239,17 @@ tr.total td{font-weight:800;background:var(--bg)}
   #yearTable th,#yearTable td{padding:6px 2px}
 }
 @media (max-width:560px){
+  /* ستون ۶ «مانده» و ستون ۸ «وضعیت» پنهان می‌شوند؛ ستون ۷ «صندوق» همیشه می‌ماند. */
   #yearTable th:nth-child(6),#yearTable td:nth-child(6),
-  #yearTable th:nth-child(7),#yearTable td:nth-child(7),
+  #yearTable th:nth-child(8),#yearTable td:nth-child(8),
   #yearUnitTable th:nth-child(5),#yearUnitTable td:nth-child(5){display:none}
 }
 @media (max-width:340px){
   #yearTable{font-size:.64rem}
   #yearTable th,#yearTable td{padding:5px 1px}
+  /* در گوشی‌های بسیار باریک، نرخ و نفرات هم کنار می‌روند تا صندوق جا شود. */
+  #yearTable th:nth-child(2),#yearTable td:nth-child(2),
+  #yearTable th:nth-child(3),#yearTable td:nth-child(3){display:none}
 }
 @media (max-width:399px){
   .p-sheet th,.p-sheet td{padding:3px 3px}
@@ -263,6 +286,13 @@ tr.total td{font-weight:800;background:var(--bg)}
           <div class="stat"><b id="sumPersons">۰</b><span>تعداد نفرات ساکن</span></div>
           <div class="stat ok"><b id="sumPaid">۰</b><span>جمع وصول‌شده</span></div>
           <div class="stat bad"><b id="sumDue">۰</b><span>مانده وصول‌نشده</span></div>
+        </div>
+        <div class="fund-bar" id="fundBar">
+          <div class="fund-main">
+            <span class="fund-lbl">💰 مانده صندوق</span>
+            <b id="sumFund">۰</b>
+          </div>
+          <div class="fund-sub" id="sumFundSub"></div>
         </div>
         <div class="note" id="sumCompare" style="margin-top:10px"></div>
       </div>
@@ -332,6 +362,14 @@ tr.total td{font-weight:800;background:var(--bg)}
         <div class="row">
           <span class="lbl">شارژ هر نفر<small>پیش‌فرض ماه‌های جدید</small></span>
           <div class="grow"><input class="amt" type="text" inputmode="numeric" id="setRate" placeholder="0"></div>
+        </div>
+        <div class="row">
+          <span class="lbl">موجودی اول دوره<small>پول نقد صندوق پیش از ثبت ماه‌ها</small></span>
+          <div class="grow"><input class="amt" type="text" inputmode="numeric" id="setFundOpen" placeholder="0"></div>
+        </div>
+        <div class="note">
+          مانده صندوق = موجودی اول دوره + همه وصولی‌ها − همه هزینه‌های ثبت‌شده.
+          اگر از قبل پولی در صندوق ساختمان دارید، همین‌جا وارد کنید.
         </div>
       </div>
     </section>
@@ -536,6 +574,7 @@ function defaultDb(){
     building:'آپارتمان مسکونی',
     currency:'تومان',
     rate:DEFAULT_RATE,
+    fundOpen:0,
     dueDay:10,
     units:units,
     categories:JSON.parse(JSON.stringify(CAT_DEFAULT)),
@@ -595,6 +634,7 @@ function normalize(){
   db.building = db.building || 'آپارتمان مسکونی';
   db.currency = db.currency || 'تومان';
   db.rate = (db.rate == null || db.rate === '' || !isFinite(num(db.rate))) ? DEFAULT_RATE : Math.max(0, num(db.rate));
+  db.fundOpen = (db.fundOpen == null || !isFinite(num(db.fundOpen))) ? 0 : num(db.fundOpen);
   db.dueDay = num(db.dueDay) || 10;
   db.units.forEach(function(u){
     u.id = u.id || uid('u');
@@ -677,6 +717,58 @@ function monthData(key, create){
   return m;
 }
 function currentKey(){ return mkey(state.year, state.month); }
+/* ============================================================
+   صندوق ساختمان
+   موجودی صندوق = موجودی اول دوره + (همه وصولی‌ها − همه هزینه‌ها) تا پایان آن ماه.
+   شارژ وصول‌شده به صندوق می‌ریزد و هزینه‌های ثبت‌شده از آن کم می‌شود.
+   ============================================================ */
+/* موجودی اول دوره داخل خود داده ذخیره می‌شود تا در فایل پشتیبان هم بیاید. */
+function fundOpenGet(){
+  var v = num(db && db.fundOpen);
+  if(!isFinite(v)) v = 0;
+  return v;
+}
+function fundOpenSet(v){
+  if(!db) return;
+  db.fundOpen = num(v);
+  save();
+}
+function monthIndex(key){
+  var p = String(key).split('-');
+  return num(p[0]) * 12 + (num(p[1]) - 1);
+}
+function keyFromIndex(idx){
+  var y = Math.floor(idx / 12), m = (idx % 12) + 1;
+  return mkey(y, m);
+}
+/* اولین ماهی که در آن داده‌ای ثبت شده است؛ مبنای شروع محاسبه صندوق. */
+function firstDataKey(){
+  var bestKey = null, bestIdx = null;
+  Object.keys(db.months || {}).forEach(function(k){
+    var m = db.months[k];
+    if(!m) return;
+    var hasAny = false;
+    Object.keys(m.expenses || {}).forEach(function(cid){ if(expTotal(m, cid) !== 0) hasAny = true; });
+    Object.keys(m.payments || {}).forEach(function(uid){ if(num(m.payments[uid]) !== 0) hasAny = true; });
+    if(!hasAny) return;
+    var idx = monthIndex(k);
+    if(bestIdx === null || idx < bestIdx){ bestIdx = idx; bestKey = k; }
+  });
+  return bestKey;
+}
+/* موجودی صندوق در پایان ماه موردنظر. */
+function fundOf(key){
+  var base = firstDataKey();
+  if(!base) return fundOpenGet();
+  var from = monthIndex(base), to = monthIndex(key);
+  if(to < from) return fundOpenGet();
+  var sum = fundOpenGet();
+  for(var i = from; i <= to; i++){
+    var r = compute(keyFromIndex(i));
+    sum += (r.paidTotal - r.expensesTotal);
+  }
+  return sum;
+}
 function rateOf(key){
   var m = db.months[key];
   if(m && m.rate != null && m.rate !== '' && isFinite(num(m.rate))) return Math.max(0, num(m.rate));
@@ -816,6 +908,23 @@ function refreshNumbers(){
   $('#sumPaid').textContent = money(r.paidTotal);
   $('#sumDue').textContent = money(Math.max(0, r.due));
   $('#expHint').textContent = 'جمع هزینه‌ها: ' + money(r.expensesTotal) + ' ' + db.currency;
+  /* مانده صندوق: همیشه نشان داده می‌شود، حتی وقتی ماه خالی است. */
+  var fund = fundOf(key);
+  $('#sumFund').textContent = money(fund) + ' ' + db.currency;
+  var fb = $('#fundBar');
+  if(fb){
+    fb.classList.toggle('pos', fund > 0.5);
+    fb.classList.toggle('neg', fund < -0.5);
+  }
+  var fsub = $('#sumFundSub');
+  if(fsub){
+    var delta = r.paidTotal - r.expensesTotal;
+    var sign = delta > 0 ? '+' : (delta < 0 ? '−' : '±');
+    var ftxt = 'موجودی اول دوره: ' + money(fundOpenGet()) + ' ' + db.currency +
+      ' | تغییر این ماه: ' + sign + money(Math.abs(delta)) + ' ' + db.currency;
+    if(r.paidTotal === 0 && r.expensesTotal === 0){ ftxt += ' (این ماه هنوز وصولی یا هزینه‌ای ثبت نشده)'; }
+    fsub.textContent = ftxt;
+  }
   db.categories.forEach(function(c){
     var el = $('[data-expsum="' + c.id + '"]');
     if(el){
@@ -866,6 +975,8 @@ function renderUnits(){
   $('#setBuilding').value = db.building || '';
   $('#setCurrency').value = db.currency || '';
   $('#setRate').value = group(num(db.rate) || DEFAULT_RATE);
+  var fo = $('#setFundOpen');
+  if(fo) fo.value = fundOpenGet() ? group(fundOpenGet()) : '';
   var dd = '';
   for(var d=1; d<=31; d++) dd += '<option value="' + d + '"' + (num(db.dueDay) === d ? ' selected' : '') + '>' + faDigits(d) + '</option>';
   $('#setDueDay').innerHTML = dd;
@@ -880,6 +991,7 @@ function renderYearly(){
     tTotal += r.total; tPaid += r.paidTotal;
     db.units.forEach(function(u){ perUnit[u.id] += (r.shares[u.id] || 0); });
     var has = r.total > 0 || r.paidTotal > 0;
+    var mFund = fundOf(mkey(state.year, m));
     rows += '<tr data-jump="' + m + '" style="cursor:pointer">' +
       '<td style="text-align:right">' + J_MONTHS[m-1] + '</td>' +
       '<td class="num">' + (has ? money(r.rate) : '—') + '</td>' +
@@ -887,15 +999,17 @@ function renderYearly(){
       '<td class="num">' + (has ? money(r.total) : '—') + '</td>' +
       '<td class="num">' + (has ? money(r.paidTotal) : '—') + '</td>' +
       '<td class="num">' + (has ? money(Math.max(0, r.due)) : '—') + '</td>' +
+      '<td class="num' + (mFund < -0.5 ? ' neg' : '') + '">' + money(mFund) + '</td>' +
       '<td>' + (has ? (r.due <= 0.5 ? '<span class="chip ok">تسویه</span>' : '<span class="chip bad">مانده</span>') : '<span class="chip">خالی</span>') + '</td>' +
     '</tr>';
   }
   rows += '<tr class="total"><td>جمع سال</td><td></td><td></td>' +
     '<td class="num">' + money(tTotal) + '</td>' +
     '<td class="num">' + money(tPaid) + '</td>' +
-    '<td class="num">' + money(Math.max(0, tTotal - tPaid)) + '</td><td></td></tr>';
+    '<td class="num">' + money(Math.max(0, tTotal - tPaid)) + '</td>' +
+    '<td class="num">' + money(fundOf(mkey(state.year, 12))) + '</td><td></td></tr>';
   $('#yearTable').innerHTML =
-    '<thead><tr><th>ماه</th><th>نرخ هر نفر</th><th>نفرات</th><th>جمع شارژ</th><th>وصول‌شده</th><th>مانده</th><th>وضعیت</th></tr></thead>' +
+    '<thead><tr><th>ماه</th><th>نرخ هر نفر</th><th>نفرات</th><th>جمع شارژ</th><th>وصول‌شده</th><th>مانده</th><th>صندوق</th><th>وضعیت</th></tr></thead>' +
     '<tbody>' + rows + '</tbody>';
   var ur = '';
   db.units.forEach(function(u){
@@ -1094,6 +1208,13 @@ function bindUnits(){
       save(); renderMonthly(); renderYearly();
       toast('نرخ پیش‌فرض: ' + money(v));
     }
+    else if(el.id === 'setFundOpen'){
+      var fv = num(el.value);
+      fundOpenSet(fv);
+      el.value = fv ? group(fv) : '';
+      refreshNumbers(); renderYearly();
+      toast('موجودی اول دوره: ' + money(fv));
+    }
   });
   document.addEventListener('click', function(e){
     var t = e.target.closest ? e.target.closest('[data-del]') : null;
@@ -1224,7 +1345,10 @@ function monthSheet(key){
     '<td class="num">' + money(r.paidTotal) + '</td><td class="num">' + money(Math.max(0, r.due)) + '</td><td></td></tr></tfoot></table>';
   var note = r.m.note ? '<div class="p-h">۳) یادداشت</div><div style="font-size:11px">' + esc(r.m.note) + '</div>' : '';
   var sign = '<div class="p-sign"><div>مهر و امضای مدیر ساختمان</div><div>امضای دریافت‌کننده</div></div>';
-  return '<div class="p-sheet">' + head + ex + pu + note + sign + '</div>';
+  var fundBox = '<div class="p-fund">💰 مانده صندوق در پایان ' + J_MONTHS[jm-1] + ': <b>' +
+    money(fundOf(key)) + ' ' + esc(db.currency) + '</b> — موجودی اول دوره ' + money(fundOpenGet()) +
+    ' + وصولی این ماه ' + money(r.paidTotal) + ' − هزینه این ماه ' + money(r.expensesTotal) + '</div>';
+  return '<div class="p-sheet">' + head + ex + fundBox + pu + note + sign + '</div>';
 }
 function yearSheet(){
   var head = '<div class="p-brand">' + APP_NAME + '</div>' +
@@ -1237,12 +1361,14 @@ function yearSheet(){
     rows += '<tr><td>' + J_MONTHS[m-1] + '</td><td class="num">' + money(r.rate) + '</td>' +
       '<td>' + faDigits(r.personsTotal) + '</td><td class="num">' + money(r.total) + '</td>' +
       '<td class="num">' + money(r.paidTotal) + '</td>' +
-      '<td class="num">' + money(Math.max(0, r.due)) + '</td></tr>';
+      '<td class="num">' + money(Math.max(0, r.due)) + '</td>' +
+      '<td class="num">' + money(fundOf(mkey(state.year, m))) + '</td></tr>';
   }
   rows += '<tr><td><b>جمع سال</b></td><td></td><td></td><td class="num"><b>' + money(tT) + '</b></td>' +
-    '<td class="num"><b>' + money(tP) + '</b></td><td class="num"><b>' + money(Math.max(0, tT - tP)) + '</b></td></tr>';
+    '<td class="num"><b>' + money(tP) + '</b></td><td class="num"><b>' + money(Math.max(0, tT - tP)) + '</b></td>' +
+    '<td class="num"><b>' + money(fundOf(mkey(state.year, 12))) + '</b></td></tr>';
   var t1 = '<div class="p-h">۱) عملکرد ماهانه</div><table><thead><tr><th>ماه</th><th>نرخ هر نفر</th>' +
-    '<th>نفرات</th><th>جمع شارژ</th><th>وصول‌شده</th><th>مانده</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    '<th>نفرات</th><th>جمع شارژ</th><th>وصول‌شده</th><th>مانده</th><th>صندوق</th></tr></thead><tbody>' + rows + '</tbody></table>';
   var perUnit = {}, paidY = {};
   db.units.forEach(function(u){ perUnit[u.id] = 0; paidY[u.id] = 0; });
   for(var k=1; k<=12; k++){
@@ -1292,8 +1418,10 @@ function unitReceipt(u, jy, jm){
     }
   });
   rows += '</tbody><tfoot><tr><td>جمع هزینه‌ها</td><td class="num">' + money(r.expensesTotal) + '</td></tr></tfoot></table>';
+  var rFund = '<div class="p-fund">💰 مانده صندوق در پایان این ماه: <b>' +
+    money(fundOf(key)) + ' ' + esc(db.currency) + '</b></div>';
   var sign = '<div class="p-sign"><div>امضای مدیر ساختمان</div><div>امضای ساکن</div></div>';
-  return '<div class="p-sheet">' + head + t + rows + sign + '</div>';
+  return '<div class="p-sheet">' + head + t + rows + rFund + sign + '</div>';
 }
 function doPrintYear(){
   $('#printArea').innerHTML = yearSheet();
@@ -1606,7 +1734,7 @@ function bindBackup(){
     out.push([csvEscape('گزارش شارژ ' + db.building + ' - سال ' + state.year)].join(','));
     out.push('');
     out.push(['ماه'].concat(db.categories.map(function(c){ return c.name; }))
-      .concat(['نرخ هر نفر','جمع نفرات','جمع شارژ','جمع هزینه ثبت‌شده','جمع پرداختی','مانده'])
+      .concat(['نرخ هر نفر','جمع نفرات','جمع شارژ','جمع هزینه ثبت‌شده','جمع پرداختی','مانده','مانده صندوق'])
       .concat(db.units.map(function(u){ return 'نفرات ' + u.name; }))
       .concat(db.units.map(function(u){ return 'شارژ ' + u.name; }))
       .concat(db.units.map(function(u){ return 'پرداختی ' + u.name; }))
@@ -1616,6 +1744,7 @@ function bindBackup(){
       out.push([J_MONTHS[m-1]]
         .concat(db.categories.map(function(c){ return r.catTotals[c.id] || 0; }))
         .concat([r.rate, r.personsTotal, r.total, r.expensesTotal, r.paidTotal, Math.max(0, r.due)])
+        .concat([fundOf(mkey(state.year, m))])
         .concat(db.units.map(function(u){ return r.persons[u.id] || 0; }))
         .concat(db.units.map(function(u){ return r.shares[u.id] || 0; }))
         .concat(db.units.map(function(u){ return r.paid[u.id] || 0; }))
@@ -1652,9 +1781,22 @@ function bindBackup(){
     });
     if(!del.length){ toast('داده قدیمی‌تری وجود ندارد'); return; }
     if(!confirm('داده ' + faDigits(del.length) + ' ماه قدیمی حذف شود؟')) return;
+    /* اگر ماه‌های قدیمی حذف شوند، اثرشان روی صندوق از بین می‌رود. پس مجموع
+       وصولی منهای هزینه آن ماه‌ها به موجودی اول دوره اضافه می‌شود تا مانده
+       صندوق بعد از حذف هم دقیقاً همان عدد قبلی بماند. */
+    var carry = 0;
+    del.forEach(function(k){
+      var rr = compute(k);
+      carry += (rr.paidTotal - rr.expensesTotal);
+    });
     del.forEach(function(k){ delete db.months[k]; });
+    if(carry !== 0){
+      db.fundOpen = num(db.fundOpen) + carry;
+      var fo = $('#setFundOpen');
+      if(fo) fo.value = num(db.fundOpen) ? group(num(db.fundOpen)) : '';
+    }
     save(); renderAll();
-    toast('داده‌های قدیمی حذف شد');
+    toast('داده‌های قدیمی حذف شد' + (carry !== 0 ? ' (اثر آن‌ها در مانده صندوق حفظ شد)' : ''));
   });
   $('#reset').addEventListener('click', function(){
     if(!confirm('همه داده‌ها پاک و به حالت اولیه برگردد؟')) return;

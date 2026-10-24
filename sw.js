@@ -1,6 +1,6 @@
 ﻿/* Service worker for the apartment-charge offline app.
    Only registered over https / localhost (see registerSW() in the page). */
-var CACHE = 'apartment-charge-v6';
+var CACHE = 'apartment-charge-v7';
 
 var ASSETS = [
   './',
