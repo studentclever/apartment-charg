@@ -135,6 +135,18 @@ input.numIn{direction:ltr;text-align:center;font-weight:700}
 .btn.sec{background:var(--bg);color:var(--ink);border:1.5px solid var(--line)}
 .btn.dan{background:var(--bad)}
 .btn.sm{padding:8px 10px;font-size:.8rem;width:auto}
+a.btn{text-decoration:none}
+#buyYearly,#buyMonthly{flex-direction:column;gap:2px;line-height:1.6}
+.lic-banner{
+  display:none;align-items:center;gap:8px;margin:0 0 10px;padding:9px 12px;border-radius:12px;
+  background:var(--brand-soft);color:var(--brand);font-size:.8rem;font-weight:700;line-height:1.7
+}
+.lic-banner.warn{background:var(--warn-soft);color:var(--warn)}
+.lic-banner.bad{background:var(--bad-soft);color:var(--bad)}
+.lic-banner span{flex:1}
+.lic-banner .btn{flex:0 0 auto}
+body.locked input:disabled,body.locked select:disabled,body.locked textarea:disabled{opacity:.6}
+.sms-msg{white-space:pre-wrap;font-size:.78rem;color:var(--muted);background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:8px;line-height:1.9}
 .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .btn-grid .full{grid-column:1/-1}
 .del{
@@ -302,6 +314,10 @@ tr.total td{font-weight:800;background:var(--bg)}
       <button class="tab" data-view="units">👥 واحدها</button>
       <button class="tab" data-view="settings">⚙️ تنظیمات</button>
     </div>
+    <div class="lic-banner" id="licBanner">
+      <span id="licBannerTxt"></span>
+      <button class="btn sm" id="licGo">🔑 اشتراک</button>
+    </div>
     <section class="view on" id="v-monthly">
       <div class="card">
         <h2>📊 خلاصه <span class="sp" id="sumMonthTag"></span></h2>
@@ -342,6 +358,22 @@ tr.total td{font-weight:800;background:var(--bg)}
           <button class="btn" id="printMonth">🖨️ خروجی PDF این ماه</button>
         </div>
         <button class="btn sec" id="rateApplyAll" style="margin-top:8px">🔁 اعمال نرخ این ماه روی همه ماه‌ها</button>
+      </div>
+      <div class="card" id="smsCard">
+        <h2>📩 پیامک شارژ <span class="sp" id="smsTag"></span></h2>
+        <div id="smsList"></div>
+        <div class="btn-grid" style="margin-top:10px">
+          <button class="btn" id="smsSend" style="display:none">📩 ارسال به همه بدهکاران</button>
+          <button class="btn sec" id="smsReset">↩️ متن پیش‌فرض پیام</button>
+        </div>
+        <div class="row" style="border-bottom:0;padding-bottom:0"><span class="lbl">متن پیام<small>قابل ویرایش</small></span></div>
+        <textarea id="smsTpl" rows="4"></textarea>
+        <div class="note" style="margin-top:6px">
+          جاهای خالی خودکار پر می‌شوند: {ساختمان} {واحد} {ماه} {مبلغ} {پول} {مهلت}.
+          پیامک فقط برای واحدهایی ساخته می‌شود که مانده‌شان بدهکار است. شماره موبایل هر واحد را در «👥 واحدها» وارد کنید.
+        </div>
+        <div class="sms-msg" id="smsSample" style="display:none"></div>
+        <div class="note" id="smsNote" style="margin-top:6px"></div>
       </div>
       <div class="card">
         <h2>📝 یادداشت ماه</h2>
@@ -416,6 +448,20 @@ tr.total td{font-weight:800;background:var(--bg)}
           <button class="btn" id="installBtn" style="display:none">📲 نصب برنامه روی گوشی</button>
         </div>
         <div class="note" id="installHint" style="margin-top:10px"></div>
+      </div>
+      <div class="card" id="licCard" style="display:none">
+        <h2>🔑 اشتراک <span class="sp" id="licTag"></span></h2>
+        <div class="note" id="licInfo"></div>
+        <div class="btn-grid" style="margin-top:10px">
+          <button class="btn" id="buyYearly"></button>
+          <button class="btn sec" id="buyMonthly"></button>
+          <button class="btn sec full" id="licRestore">🔄 بازیابی خرید قبلی</button>
+        </div>
+        <div class="note" style="margin-top:8px">
+          پرداخت از طریق همان فروشگاهی انجام می‌شود که برنامه را از آن نصب کرده‌اید (بازار یا مایکت).
+          اشتراک ماهانه به‌ازای هر ماه، ۲۰٪ گران‌تر از اشتراک سالانه است. اگر اشتراک تمام شود،
+          اطلاعات شما پاک نمی‌شود؛ فقط ثبت و ویرایش قفل می‌ماند و همچنان می‌توانید گزارش، PDF و فایل پشتیبان بگیرید.
+        </div>
       </div>
       <div class="card">
         <h2>🏷️ انواع هزینه مشاع</h2>
@@ -606,7 +652,7 @@ var state = {view:'monthly', year:0, month:1};
 function uid(p){ return p + '_' + Math.random().toString(36).slice(2,8); }
 function defaultDb(){
   var units = [];
-  for(var i=1;i<=10;i++) units.push({id:'u'+i, name:'واحد ' + faDigits(i), owner:'', persons:DEFAULT_PERSONS, openBal:0});
+  for(var i=1;i<=10;i++) units.push({id:'u'+i, name:'واحد ' + faDigits(i), owner:'', phone:'', persons:DEFAULT_PERSONS, openBal:0});
   return {
     version:3,
     building:DEFAULT_BUILDING,
@@ -672,6 +718,7 @@ function normalize(){
   db.building = db.building || DEFAULT_BUILDING;
   if(db.building === OLD_DEFAULT_BUILDING) db.building = DEFAULT_BUILDING;
   if(!db.version || db.version < 3) db.version = 3;
+  if(typeof db.smsTemplate !== 'string' || !db.smsTemplate.trim()) delete db.smsTemplate;
   if(db.carryStart != null && !/^1[3-6]\d\d-(0[1-9]|1[0-2])$/.test(String(db.carryStart))) delete db.carryStart;
   db.currency = db.currency || 'تومان';
   db.rate = (db.rate == null || db.rate === '' || !isFinite(num(db.rate))) ? DEFAULT_RATE : Math.max(0, num(db.rate));
@@ -680,6 +727,7 @@ function normalize(){
   db.units.forEach(function(u){
     u.id = u.id || uid('u');
     u.owner = u.owner || '';
+    u.phone = String(u.phone == null ? '' : u.phone);
     u.openBal = isFinite(num(u.openBal)) ? Math.round(num(u.openBal)) : 0;
     u.persons = (u.persons == null || !isFinite(num(u.persons))) ? DEFAULT_PERSONS : Math.max(0, Math.round(num(u.persons)));
     delete u.coeff;
@@ -995,7 +1043,9 @@ function renderMonthly(){
   });
   $('#payList').innerHTML = ph || '<div class="note">واحدی تعریف نشده است.</div>';
   $('#mNote').value = m.note || '';
+  $('#smsTpl').value = db.smsTemplate || SMS_TPL_DEFAULT;
   refreshNumbers();
+  applyLock();
 }
 /* یک ردیف هزینه: مبلغ + شرح، با دکمه حذف. */
 function expRowHtml(cid, it){
@@ -1090,6 +1140,7 @@ function refreshNumbers(){
     if(pc) pc.innerHTML = prevCellHtml(pv);
     if(b) b.innerHTML = balText(pv + share - paid);
   });
+  renderSmsList();
 }
 function renderUnits(){
   var html = '';
@@ -1098,6 +1149,7 @@ function renderUnits(){
       '<span class="lbl" style="min-width:26px">' + faDigits(i+1) + '</span>' +
       '<div class="u-name"><input type="text" data-uf="name" data-uid="' + esc(u.id) + '" value="' + esc(u.name) + '" placeholder="نام واحد"></div>' +
       '<div class="u-name"><input type="text" data-uf="owner" data-uid="' + esc(u.id) + '" value="' + esc(u.owner) + '" placeholder="مالک / ساکن"></div>' +
+      '<div class="u-name"><input type="text" inputmode="tel" data-uf="phone" data-uid="' + esc(u.id) + '" value="' + esc(u.phone) + '" placeholder="موبایل (۰۹…)" style="direction:ltr;text-align:left"></div>' +
       '<div style="flex:0 0 74px"><input class="numIn" type="text" inputmode="numeric" data-uf="persons" data-uid="' + esc(u.id) + '" value="' + faDigits(num(u.persons)) + '" title="تعداد نفرات"></div>' +
       '<button class="del" data-del="' + esc(u.id) + '" title="حذف واحد">✕</button>' +
     '</div>';
@@ -1142,6 +1194,7 @@ function renderUnits(){
   $('#setDueDay').innerHTML = dd;
   $('#verNote').textContent = 'آخرین ذخیره: ' + jalaliStamp(new Date()) + ' — نسخه ' + (db.version || 1);
   renderAutoBackup();
+  applyLock();
 }
 function renderYearly(){
   var A = yearAgg(state.year), rows = '';
@@ -1451,7 +1504,7 @@ function bindUnits(){
   });
   $('#addUnit').addEventListener('click', function(){
     if(db.units.length >= 40){ toast('حداکثر ۴۰ واحد'); return; }
-    db.units.push({id:uid('u'), name:'واحد ' + faDigits(db.units.length + 1), owner:'', persons:DEFAULT_PERSONS, openBal:0});
+    db.units.push({id:uid('u'), name:'واحد ' + faDigits(db.units.length + 1), owner:'', phone:'', persons:DEFAULT_PERSONS, openBal:0});
     save(); renderAll();
     toast('واحد اضافه شد');
   });
@@ -1479,6 +1532,15 @@ function bindUnits(){
    گزارش چاپی / PDF
    ============================================================ */
 function openPrint(){
+  /* window.print() does nothing inside an Android WebView; the app's NativePrint plugin opens the system print
+     dialog (which also offers "Save as PDF"). */
+  var np = plugin('NativePrint');
+  if(IS_NATIVE && np && np.print){
+    setTimeout(function(){
+      np.print({name:APP_NAME}).catch(function(){ toast('چاپ در این دستگاه ممکن نشد'); });
+    }, 80);
+    return;
+  }
   setTimeout(function(){ window.print(); }, 80);
 }
 function monthSheet(key){
@@ -1628,6 +1690,18 @@ function bindPrint(){
    پشتیبان‌گیری و بازیابی
    ============================================================ */
 function download(name, text, type){
+  /* Blob downloads are not supported in an Android WebView: write the file to the app cache and open the
+     system share sheet (save to Files/Drive, send via Telegram, ...). */
+  var fsp = plugin('Filesystem'), shp = plugin('Share');
+  if(IS_NATIVE && fsp && shp){
+    fsp.writeFile({path:name, data:text, directory:'CACHE', encoding:'utf8'}).then(function(r){
+      return shp.share({title:name, url:r.uri, dialogTitle:'ذخیره یا ارسال فایل'});
+    }).catch(function(e){
+      var m = String((e && e.message) || e || '');
+      if(!/cancel/i.test(m)) toast('ذخیره فایل ممکن نشد');
+    });
+    return;
+  }
   var blob = new Blob([text], {type:type || 'application/octet-stream'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -2111,6 +2185,314 @@ function bindInstall(){
 /* ============================================================
    پوسته و راه‌اندازی
    ============================================================ */
+/* ============================================================
+   اشتراک و ماه آزمایشی
+   فقط وقتی برنامه داخل اپ اندروید/iOS (Capacitor) اجرا می‌شود فعال است؛
+   نسخه وب (مثلاً GitHub Pages) هرگز قفل نمی‌شود.
+   پلاگین بومی «StoreBilling» باید این متدها را بدهد:
+     queryActive()  -> {ok, active, plan?, expiresAt?}   (وضعیت اشتراک از خود فروشگاه)
+     purchase({sku})-> {ok, expiresAt?}
+     getSkuDetails({skus}) -> {items:[{sku, price}]}      (اختیاری)
+   ============================================================ */
+var IS_NATIVE = false;
+try{ IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }catch(e){}
+function plugin(name){
+  try{ return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null; }catch(e){ return null; }
+}
+var DAY_MS = 86400000;
+var TRIAL_DAYS = 30;
+var LIC_KEY = 'apartment_license_v1';
+/* قیمت‌ها به تومان. ماهانه = ۲۰٪ بیشتر از سهم یک ماه از اشتراک سالانه (۳۰۰٬۰۰۰ ÷ ۱۲ × ۱٫۲).
+   شناسه‌ها (sku) باید با محصولاتی که در پنل بازار و مایکت تعریف می‌کنید یکی باشند. */
+var PLANS = {
+  yearly:{sku:'plan_yearly', title:'اشتراک سالانه', price:300000, per:'سال', days:366},
+  monthly:{sku:'plan_monthly', title:'اشتراک ماهانه', price:30000, per:'ماه', days:31}
+};
+var licPrices = {};
+function licLoad(){
+  try{ var v = JSON.parse(localStorage.getItem(LIC_KEY)); return (v && typeof v === 'object') ? v : {}; }catch(e){ return {}; }
+}
+function licSave(l){ try{ localStorage.setItem(LIC_KEY, JSON.stringify(l)); }catch(e){} }
+/* ساعت «غیرقابل‌برگشت»: اگر ساعت گوشی عقب برده شود، آخرین زمان دیده‌شده ملاک است. */
+function licNow(l){
+  var now = Date.now();
+  return (l.lastSeen && now < l.lastSeen) ? l.lastSeen : now;
+}
+function licStatus(){
+  if(!IS_NATIVE) return {state:'free'};
+  var l = licLoad(), now = licNow(l);
+  if(!l.trialStart) l.trialStart = now;
+  l.lastSeen = now;
+  licSave(l);
+  if(l.expiresAt && l.expiresAt > now){
+    return {state:'active', plan:l.plan, until:l.expiresAt, daysLeft:Math.ceil((l.expiresAt - now) / DAY_MS)};
+  }
+  var trialEnd = l.trialStart + TRIAL_DAYS * DAY_MS;
+  if(now < trialEnd) return {state:'trial', until:trialEnd, daysLeft:Math.ceil((trialEnd - now) / DAY_MS)};
+  return {state:'expired'};
+}
+function isLocked(){ return licStatus().state === 'expired'; }
+/* هر چیزی که اطلاعات را تغییر می‌دهد وقتی اشتراک تمام شده غیرفعال می‌شود. */
+var LOCK_SEL = '#v-monthly input,#v-monthly textarea,#v-monthly select,#v-units input,#v-units select,#v-units textarea,' +
+  '#v-monthly [data-expadd],#v-monthly [data-exdel],#clearPay,#rateApplyAll,#addUnit,#bulkPersons,[data-del],[data-delcat],' +
+  '#addCat,#newCatName,#prune,#reset,#impJson,#smsSend,#smsReset,#setBuilding,#setCurrency,#setDueDay,#setRate,#setFundOpen';
+function applyLock(){
+  var st = licStatus(), locked = (st.state === 'expired');
+  document.body.classList.toggle('locked', locked);
+  renderSmsList();   /* لیست پیامک به وضعیت قفل وابسته است */
+  $$(LOCK_SEL).forEach(function(el){ el.disabled = locked; });
+  renderLicense(st);
+}
+function priceText(key){
+  var pl = PLANS[key], p = licPrices[pl.sku];
+  return p ? faDigits(p) : (money(pl.price) + ' تومان / ' + pl.per);
+}
+function renderLicense(st){
+  var banner = $('#licBanner'), card = $('#licCard');
+  if(!banner || !card) return;
+  if(!IS_NATIVE){ banner.style.display = 'none'; card.style.display = 'none'; return; }
+  card.style.display = '';
+  var txt = '', cls = '';
+  if(st.state === 'trial'){
+    txt = '🎁 دوره آزمایشی: ' + faDigits(st.daysLeft) + ' روز مانده';
+    cls = st.daysLeft <= 7 ? 'warn' : '';
+  } else if(st.state === 'expired'){
+    txt = '⛔ دوره آزمایشی یا اشتراک تمام شده است. فعلاً فقط مشاهده و گرفتن خروجی ممکن است.';
+    cls = 'bad';
+  } else if(st.state === 'active' && st.daysLeft <= 7){
+    txt = '⏳ اشتراک شما ' + faDigits(st.daysLeft) + ' روز دیگر تمام می‌شود';
+    cls = 'warn';
+  }
+  banner.className = 'lic-banner' + (cls ? ' ' + cls : '');
+  banner.style.display = txt ? 'flex' : 'none';
+  $('#licBannerTxt').textContent = txt;
+  var tag = $('#licTag'), info = $('#licInfo');
+  if(st.state === 'trial'){
+    tag.textContent = 'آزمایشی';
+    info.textContent = 'دوره آزمایشی شما ' + faDigits(st.daysLeft) + ' روز دیگر ادامه دارد. بعد از آن برای ادامه ثبت و ویرایش باید اشتراک تهیه کنید.';
+  } else if(st.state === 'active'){
+    tag.textContent = 'فعال';
+    info.textContent = (PLANS[st.plan] ? PLANS[st.plan].title : 'اشتراک') + ' فعال است؛ ' + faDigits(st.daysLeft) +
+      ' روز دیگر (تا ' + jalaliStamp(new Date(st.until)).split(' - ')[0] + ').';
+  } else {
+    tag.textContent = 'منقضی';
+    info.textContent = 'دوره آزمایشی یا اشتراک تمام شده است. اطلاعات شما سر جایش است؛ با تهیه اشتراک، ثبت و ویرایش دوباره باز می‌شود.';
+  }
+  var showBuy = (st.state !== 'active');
+  $('#buyYearly').style.display = showBuy ? '' : 'none';
+  $('#buyMonthly').style.display = showBuy ? '' : 'none';
+  setBuyBtn('#buyYearly', '🔑 ' + PLANS.yearly.title, priceText('yearly'));
+  setBuyBtn('#buyMonthly', PLANS.monthly.title, priceText('monthly'));
+}
+function setBuyBtn(sel, title, price){
+  var b = $(sel);
+  b.textContent = '';
+  var a = document.createElement('span'); a.textContent = title;
+  var c = document.createElement('small'); c.textContent = price; c.style.fontWeight = '500';
+  b.appendChild(a); b.appendChild(c);
+}
+function licLoadPrices(){
+  var p = plugin('StoreBilling');
+  if(!IS_NATIVE || !p || !p.getSkuDetails) return;
+  p.getSkuDetails({skus:[PLANS.yearly.sku, PLANS.monthly.sku]}).then(function(res){
+    ((res && res.items) || []).forEach(function(it){ if(it && it.sku && it.price) licPrices[it.sku] = String(it.price); });
+    renderLicense(licStatus());
+  }).catch(function(){});
+}
+/* وضعیت اشتراک را از خود فروشگاه می‌پرسد. اگر فروشگاه در دسترس نباشد، وضعیت ذخیره‌شده می‌ماند. */
+function licSync(){
+  var p = plugin('StoreBilling');
+  if(!IS_NATIVE || !p || !p.queryActive){ applyLock(); return Promise.resolve(); }
+  return p.queryActive().then(function(res){
+    licLastReason = (res && !res.ok) ? String(res.reason || '') : '';
+    if(!res || !res.ok) return;
+    var l = licLoad();
+    if(res.active && num(res.expiresAt) > 0){
+      l.plan = res.plan || l.plan || 'yearly';
+      l.expiresAt = num(res.expiresAt);
+    } else {
+      delete l.expiresAt; delete l.plan;
+    }
+    l.lastVerified = Date.now();
+    licSave(l);
+  }).catch(function(){}).then(function(){ applyLock(); });
+}
+/* دلیل‌های ناموفق بودن که پلاگین فروشگاه (نام خطای Poolakey) برمی‌گرداند */
+var licLastReason = '';
+function payFailText(res){
+  var r = String((res && res.reason) || '');
+  if(r === 'canceled') return 'پرداخت لغو شد';
+  if(/BazaarNotFound/.test(r)) return 'برنامه بازار روی این گوشی نصب نیست';
+  if(/BazaarNotSupported/.test(r)) return 'نسخه برنامه بازار قدیمی است؛ آن را به‌روز کنید';
+  if(/IAPNotSupported|SubsNotSupported/.test(r)) return 'پرداخت درون‌برنامه‌ای در این نسخه بازار پشتیبانی نمی‌شود';
+  if(/IllegalState/.test(r)) return 'پرداخت راه‌اندازی نشده است';
+  return 'پرداخت انجام نشد';
+}
+function licBuy(key){
+  var p = plugin('StoreBilling'), plan = PLANS[key];
+  if(!IS_NATIVE || !p || !p.purchase){ toast('پرداخت فقط داخل اپِ نصب‌شده از بازار یا مایکت ممکن است'); return; }
+  p.purchase({sku:plan.sku}).then(function(res){
+    if(res && res.ok){
+      var l = licLoad();
+      l.plan = key;
+      l.expiresAt = num(res.expiresAt) || (licNow(l) + plan.days * DAY_MS);
+      l.lastVerified = Date.now();
+      licSave(l);
+      toast('اشتراک فعال شد ✅');
+      applyLock();
+    } else {
+      toast(payFailText(res));
+    }
+  }).catch(function(){ toast('پرداخت لغو شد یا خطایی رخ داد'); });
+}
+function bindLicense(){
+  $('#licGo').addEventListener('click', function(){ setView('settings'); var c = $('#licCard'); if(c && c.scrollIntoView) c.scrollIntoView(); });
+  $('#buyYearly').addEventListener('click', function(){ licBuy('yearly'); });
+  $('#buyMonthly').addEventListener('click', function(){ licBuy('monthly'); });
+  $('#licRestore').addEventListener('click', function(){
+    licSync().then(function(){
+      var st = licStatus();
+      if(st.state === 'active') toast('اشتراک شما بازیابی شد ✅');
+      else if(licLastReason) toast(payFailText({reason:licLastReason}));
+      else toast('اشتراک فعالی پیدا نشد');
+    });
+  });
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') licSync();
+  });
+}
+
+/* ============================================================
+   پیامک شارژ
+   پلاگین بومی «SmsSender»:
+     isDirectSupported() -> {supported}   (اندروید: بله، iOS: خیر)
+     requestPermission() -> {granted}
+     send({to, text})    -> خطا در صورت شکست
+   بدون پلاگین (نسخه وب یا iOS) برای هر واحد یک دکمه می‌آید که برنامه پیامک گوشی را با متن آماده باز می‌کند.
+   ============================================================ */
+var SMS_TPL_DEFAULT = '{ساختمان}\nمانده شارژ {واحد} تا پایان {ماه}: {مبلغ} {پول}.\nلطفاً تا {مهلت} پرداخت فرمایید.';
+var smsDirect = false;
+function normPhone(s){
+  var d = enDigits(s).replace(/[^\d+]/g, '');
+  if(d.indexOf('+98') === 0) d = '0' + d.slice(3);
+  else if(d.indexOf('0098') === 0) d = '0' + d.slice(4);
+  else if(/^98\d{10}$/.test(d)) d = '0' + d.slice(2);
+  else if(/^9\d{9}$/.test(d)) d = '0' + d;
+  return /^09\d{9}$/.test(d) ? d : '';
+}
+function smsFill(tpl, u, r, key){
+  var jm = num(String(key).split('-')[1]);
+  var map = {
+    '{ساختمان}': db.building || '', '{واحد}': u.name, '{ماه}': J_MONTHS[jm-1],
+    '{مبلغ}': money(r.bal[u.id] || 0), '{پول}': db.currency, '{مهلت}': faDigits(db.dueDay) + ' ' + J_MONTHS[jm-1]
+  };
+  Object.keys(map).forEach(function(k){ tpl = tpl.split(k).join(map[k]); });
+  return tpl;
+}
+function smsParts(t){
+  var uni = /[^\x00-\x7F]/.test(t), single = uni ? 70 : 160, multi = uni ? 67 : 153;
+  return t.length <= single ? 1 : Math.ceil(t.length / multi);
+}
+function smsMap(m){ m.sms = m.sms || {}; return m.sms; }
+function smsRecipients(key){
+  var r = compute(key), tpl = db.smsTemplate || SMS_TPL_DEFAULT, out = [];
+  db.units.forEach(function(u){
+    var bal = r.bal[u.id] || 0;
+    if(bal <= 0.5) return;
+    out.push({u:u, phone:normPhone(u.phone), amount:bal, text:smsFill(tpl, u, r, key)});
+  });
+  return out;
+}
+function renderSmsList(){
+  var box = $('#smsList');
+  if(!box) return;
+  var key = currentKey(), list = smsRecipients(key), m = monthData(key, false), sent = m.sms || {};
+  var locked = isLocked(), html = '', withPhone = 0;
+  list.forEach(function(it){
+    var st;
+    if(!it.phone) st = '<span class="chip warn">بدون شماره</span>';
+    else if(locked) st = '<span class="chip">قفل</span>';
+    else {
+      withPhone++;
+      st = (sent[it.u.id] ? '<span class="chip ok">ارسال شد</span> ' : '') +
+        '<a class="btn sec sm" data-smslink="' + esc(it.u.id) + '" href="sms:' + it.phone + '?body=' + encodeURIComponent(it.text) + '">📩</a>';
+    }
+    html += '<div class="row">' +
+      '<span class="lbl">' + esc(it.u.name) + '<small>' + (it.phone ? faDigits(it.phone) : '—') + '</small></span>' +
+      '<span class="cell" style="color:var(--bad)">' + money(it.amount) + '</span>' +
+      '<span class="grow" style="text-align:end;flex:0 0 auto">' + st + '</span>' +
+    '</div>';
+  });
+  box.innerHTML = html || '<div class="note">این ماه واحد بدهکاری وجود ندارد.</div>';
+  $('#smsTag').textContent = list.length ? (faDigits(list.length) + ' بدهکار') : '';
+  var send = $('#smsSend');
+  send.style.display = (smsDirect && !locked) ? '' : 'none';
+  send.textContent = '📩 ارسال به همه بدهکاران (' + faDigits(withPhone) + ')';
+  var sample = $('#smsSample');
+  var first = list[0];
+  if(first){
+    sample.style.display = '';
+    sample.textContent = 'نمونه پیام برای ' + first.u.name + ':\n' + first.text;
+  } else sample.style.display = 'none';
+  var note = '';
+  if(locked) note = 'ارسال پیامک نیاز به اشتراک فعال دارد.';
+  else {
+    if(first) note = 'طول پیام: ' + faDigits(first.text.length) + ' نویسه ≈ ' + faDigits(smsParts(first.text)) + ' پیامک برای هر گیرنده.';
+    if(!smsDirect && list.length) note += ' در این دستگاه، دکمه 📩 هر واحد، برنامه پیامک گوشی را با متن آماده باز می‌کند و ارسال با خودتان است.';
+  }
+  $('#smsNote').textContent = note;
+}
+function smsProbe(){
+  var p = plugin('SmsSender');
+  if(!IS_NATIVE || !p || !p.isDirectSupported) return;
+  p.isDirectSupported().then(function(r){ smsDirect = !!(r && r.supported); renderSmsList(); applyLock(); }).catch(function(){});
+}
+function smsSendAll(){
+  var p = plugin('SmsSender');
+  if(!smsDirect || !p || isLocked()) return;
+  var key = currentKey();
+  var list = smsRecipients(key).filter(function(it){ return it.phone; });
+  if(!list.length){ toast('گیرنده‌ای با شماره معتبر وجود ندارد'); return; }
+  if(!confirm('پیامک برای ' + faDigits(list.length) + ' واحد، از سیم‌کارت همین گوشی ارسال شود؟\nهزینه طبق تعرفه اپراتور شماست.')) return;
+  p.requestPermission().then(function(res){
+    if(!res || !res.granted){ toast('مجوز ارسال پیامک داده نشد'); return; }
+    var okN = 0, failN = 0, chain = Promise.resolve();
+    list.forEach(function(it){
+      chain = chain.then(function(){
+        return p.send({to:it.phone, text:it.text}).then(function(){
+          okN++; smsMap(monthData(key, true))[it.u.id] = Date.now();
+        }).catch(function(){ failN++; });
+      });
+    });
+    return chain.then(function(){
+      save(); renderSmsList(); applyLock();
+      toast(faDigits(okN) + ' پیامک ارسال شد' + (failN ? ' | ' + faDigits(failN) + ' ناموفق' : ''));
+    });
+  }).catch(function(){ toast('ارسال پیامک ناموفق بود'); });
+}
+function bindSms(){
+  $('#smsSend').addEventListener('click', smsSendAll);
+  $('#smsTpl').addEventListener('change', function(){
+    var v = this.value;
+    if(!v.trim() || v === SMS_TPL_DEFAULT) delete db.smsTemplate; else db.smsTemplate = v;
+    save(); renderSmsList(); applyLock();
+    toast('متن پیام ذخیره شد');
+  });
+  $('#smsReset').addEventListener('click', function(){
+    delete db.smsTemplate; save();
+    $('#smsTpl').value = SMS_TPL_DEFAULT;
+    renderSmsList(); applyLock();
+    toast('متن پیش‌فرض برگشت');
+  });
+  document.addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('[data-smslink]') : null;
+    if(!a || isLocked()) return;
+    smsMap(monthData(currentKey(), true))[a.dataset.smslink] = Date.now();
+    save();
+    setTimeout(renderSmsList, 500);
+  });
+}
+
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme', t);
   $('#themeBtn').textContent = (t === 'dark') ? '☀️' : '🌙';
@@ -2121,7 +2503,7 @@ function boot(){
   var t = todayJalali();
   state.year = t.jy; state.month = t.jm;
   bindChrome(); bindAmounts(); bindUnits(); bindPrint(); bindBackup(); bindInstall();
-  bindAutoBackup();
+  bindAutoBackup(); bindLicense(); bindSms();
   if(runAutoBackup(false)){
     renderAutoBackup();
     toast('پشتیبان خودکار ماهانه گرفته شد');
@@ -2133,7 +2515,14 @@ function boot(){
   renderAll();
   setView('monthly');
   showWelcome();
-  registerSW();
+  if(IS_NATIVE){
+    /* داخل اپ نصب‌شده، کارت نصب PWA و دکمه اعداد نمونه معنی ندارند. */
+    var ic = $('#installCard'); if(ic) ic.style.display = 'none';
+    var dm = $('#demo'); if(dm) dm.style.display = 'none';
+  } else {
+    registerSW();
+  }
+  licLoadPrices(); licSync(); smsProbe();
 }
 function showWelcome(){
   var seen = null;
@@ -2152,6 +2541,7 @@ function showWelcome(){
         '<ul style="margin:0 0 12px;padding-inline-start:18px;font-size:.84rem;line-height:2">' +
           '<li>اطلاعات خودکار در همین مرورگر ذخیره می‌شود و به اینترنت نیازی نیست.</li>' +
           '<li>مانده (بدهی یا بستانکاری) هر واحد در پایان هر ماه، خودکار به ماه بعد منتقل می‌شود.</li>' +
+          '<li>با ثبت شماره موبایل هر واحد، می‌توانید پیامک یادآوری شارژ بفرستید.</li>' +
           '<li>در گوشی: از بخش «تنظیمات ← نصب روی صفحه اصلی گوشی» راهنمای نصب را ببینید.</li>' +
           '<li>خروجی PDF/اکسل و پشتیبان‌گیری از بخش «گزارش سال» و «تنظیمات» در دسترس است.</li>' +
           '<li>در ابتدای هر ماه، یک نسخه پشتیبان خودکار ساخته می‌شود (تنظیمات ← پشتیبان خودکار ماهانه).</li>' +
