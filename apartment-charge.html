@@ -118,7 +118,7 @@ header.top{
 .row .grow{flex:1;min-width:110px}
 .row .cell{min-width:80px;text-align:center;font-weight:700;font-size:.86rem}
 .row .cell small{display:block;color:var(--muted);font-weight:500;font-size:.64rem;margin-top:1px}
-input[type=text],input[type=number],select,textarea{
+input[type=text],input[type=password],input[type=number],select,textarea{
   font-family:inherit;font-size:16px;color:var(--ink);background:var(--bg);
   border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;width:100%
 }
@@ -360,17 +360,19 @@ tr.total td{font-weight:800;background:var(--bg)}
         <button class="btn sec" id="rateApplyAll" style="margin-top:8px">🔁 اعمال نرخ این ماه روی همه ماه‌ها</button>
       </div>
       <div class="card" id="smsCard">
-        <h2>📩 پیامک شارژ <span class="sp" id="smsTag"></span></h2>
+        <h2>📩 پیام شارژ <span class="sp" id="smsTag"></span></h2>
         <div id="smsList"></div>
         <div class="btn-grid" style="margin-top:10px">
           <button class="btn" id="smsSend" style="display:none">📩 ارسال به همه بدهکاران</button>
+          <button class="btn" id="rbSend" style="display:none">💬 ارسال روبیکا</button>
           <button class="btn sec" id="smsReset">↩️ متن پیش‌فرض پیام</button>
         </div>
         <div class="row" style="border-bottom:0;padding-bottom:0"><span class="lbl">متن پیام<small>قابل ویرایش</small></span></div>
         <textarea id="smsTpl" rows="4"></textarea>
         <div class="note" style="margin-top:6px">
           جاهای خالی خودکار پر می‌شوند: {ساختمان} {واحد} {ماه} {مبلغ} {پول} {مهلت}.
-          پیامک فقط برای واحدهایی ساخته می‌شود که مانده‌شان بدهکار است. شماره موبایل هر واحد را در «👥 واحدها» وارد کنید.
+          پیام فقط برای واحدهایی ساخته می‌شود که مانده‌شان بدهکار است. برای پیامک، شماره موبایل هر واحد را در «👥 واحدها» وارد کنید.
+          دکمه 💬 کنار هر واحد، پیام را در روبیکا (یا هر برنامه دیگر) می‌فرستد.
         </div>
         <div class="sms-msg" id="smsSample" style="display:none"></div>
         <div class="note" id="smsNote" style="margin-top:6px"></div>
@@ -448,6 +450,24 @@ tr.total td{font-weight:800;background:var(--bg)}
           <button class="btn" id="installBtn" style="display:none">📲 نصب برنامه روی گوشی</button>
         </div>
         <div class="note" id="installHint" style="margin-top:10px"></div>
+      </div>
+      <div class="card" id="rbCard" style="display:none">
+        <h2>💬 روبیکا <span class="sp" id="rbTag"></span></h2>
+        <div class="note">
+          بدون هیچ تنظیمی، دکمه 💬 کنار هر واحد پیام را با روبیکا (یا هر برنامه دیگر) به اشتراک می‌گذارد و شما مخاطب را انتخاب می‌کنید.
+          برای ارسال خودکار به همه، یک ربات روبیکا بسازید (در روبیکا به «@BotFather» پیام بدهید)، توکن آن را اینجا بگذارید،
+          و هر ساکن را با «کد اتصال» خودش به ربات وصل کنید. روبیکا فقط به کسانی اجازه می‌دهد که خودشان با ربات شروع کرده‌اند.
+        </div>
+        <div class="row" style="border-bottom:0">
+          <span class="lbl">توکن ربات<small>محرمانه؛ در فایل پشتیبان نمی‌آید</small></span>
+          <div class="grow"><input type="password" id="rbToken" autocomplete="off" placeholder="توکن ربات" style="direction:ltr;text-align:left"></div>
+        </div>
+        <div class="btn-grid">
+          <button class="btn sec" id="rbTest">🔌 آزمایش ربات</button>
+          <button class="btn" id="rbCheck">🔄 دریافت پیام‌های جدید</button>
+        </div>
+        <div id="rbUnits" style="margin-top:8px"></div>
+        <div class="note" id="rbNote" style="margin-top:6px"></div>
       </div>
       <div class="card" id="licCard" style="display:none">
         <h2>🔑 اشتراک <span class="sp" id="licTag"></span></h2>
@@ -652,7 +672,7 @@ var state = {view:'monthly', year:0, month:1};
 function uid(p){ return p + '_' + Math.random().toString(36).slice(2,8); }
 function defaultDb(){
   var units = [];
-  for(var i=1;i<=10;i++) units.push({id:'u'+i, name:'واحد ' + faDigits(i), owner:'', phone:'', persons:DEFAULT_PERSONS, openBal:0});
+  for(var i=1;i<=10;i++) units.push({id:'u'+i, name:'واحد ' + faDigits(i), owner:'', phone:'', rubika:'', rubikaCode:'', persons:DEFAULT_PERSONS, openBal:0});
   return {
     version:3,
     building:DEFAULT_BUILDING,
@@ -728,6 +748,8 @@ function normalize(){
     u.id = u.id || uid('u');
     u.owner = u.owner || '';
     u.phone = String(u.phone == null ? '' : u.phone);
+    u.rubika = String(u.rubika == null ? '' : u.rubika);
+    u.rubikaCode = /^\d{5}$/.test(String(u.rubikaCode)) ? String(u.rubikaCode) : '';
     u.openBal = isFinite(num(u.openBal)) ? Math.round(num(u.openBal)) : 0;
     u.persons = (u.persons == null || !isFinite(num(u.persons))) ? DEFAULT_PERSONS : Math.max(0, Math.round(num(u.persons)));
     delete u.coeff;
@@ -1194,6 +1216,7 @@ function renderUnits(){
   $('#setDueDay').innerHTML = dd;
   $('#verNote').textContent = 'آخرین ذخیره: ' + jalaliStamp(new Date()) + ' — نسخه ' + (db.version || 1);
   renderAutoBackup();
+  renderRubika();
   applyLock();
 }
 function renderYearly(){
@@ -1504,7 +1527,7 @@ function bindUnits(){
   });
   $('#addUnit').addEventListener('click', function(){
     if(db.units.length >= 40){ toast('حداکثر ۴۰ واحد'); return; }
-    db.units.push({id:uid('u'), name:'واحد ' + faDigits(db.units.length + 1), owner:'', phone:'', persons:DEFAULT_PERSONS, openBal:0});
+    db.units.push({id:uid('u'), name:'واحد ' + faDigits(db.units.length + 1), owner:'', phone:'', rubika:'', rubikaCode:'', persons:DEFAULT_PERSONS, openBal:0});
     save(); renderAll();
     toast('واحد اضافه شد');
   });
@@ -2235,7 +2258,7 @@ function isLocked(){ return licStatus().state === 'expired'; }
 /* هر چیزی که اطلاعات را تغییر می‌دهد وقتی اشتراک تمام شده غیرفعال می‌شود. */
 var LOCK_SEL = '#v-monthly input,#v-monthly textarea,#v-monthly select,#v-units input,#v-units select,#v-units textarea,' +
   '#v-monthly [data-expadd],#v-monthly [data-exdel],#clearPay,#rateApplyAll,#addUnit,#bulkPersons,[data-del],[data-delcat],' +
-  '#addCat,#newCatName,#prune,#reset,#impJson,#smsSend,#smsReset,#setBuilding,#setCurrency,#setDueDay,#setRate,#setFundOpen';
+  '#addCat,#newCatName,#prune,#reset,#impJson,#smsSend,#rbSend,#rbToken,#rbTest,#rbCheck,#smsReset,#setBuilding,#setCurrency,#setDueDay,#setRate,#setFundOpen';
 function applyLock(){
   var st = licStatus(), locked = (st.state === 'expired');
   document.body.classList.toggle('locked', locked);
@@ -2407,7 +2430,7 @@ function renderSmsList(){
   var box = $('#smsList');
   if(!box) return;
   var key = currentKey(), list = smsRecipients(key), m = monthData(key, false), sent = m.sms || {};
-  var locked = isLocked(), html = '', withPhone = 0;
+  var locked = isLocked(), html = '', withPhone = 0, rbLinked = 0;
   list.forEach(function(it){
     var st;
     if(!it.phone) st = '<span class="chip warn">بدون شماره</span>';
@@ -2417,6 +2440,12 @@ function renderSmsList(){
       st = (sent[it.u.id] ? '<span class="chip ok">ارسال شد</span> ' : '') +
         '<a class="btn sec sm" data-smslink="' + esc(it.u.id) + '" href="sms:' + it.phone + '?body=' + encodeURIComponent(it.text) + '">📩</a>';
     }
+    if(!locked){
+      var rbSent = (m.rb && m.rb[it.u.id]) ? '<span class="chip ok">روبیکا ✓</span> ' : '';
+      st = rbSent + st + ' <button class="btn sec sm" data-rbone="' + esc(it.u.id) + '" title="' +
+        (rbBotReady() && it.u.rubika ? 'ارسال با ربات روبیکا' : 'اشتراک‌گذاری (روبیکا یا برنامه دیگر)') + '">💬</button>';
+    }
+    if(it.u.rubika && rbBotReady() && !locked) rbLinked++;
     html += '<div class="row">' +
       '<span class="lbl">' + esc(it.u.name) + '<small>' + (it.phone ? faDigits(it.phone) : '—') + '</small></span>' +
       '<span class="cell" style="color:var(--bad)">' + money(it.amount) + '</span>' +
@@ -2428,6 +2457,9 @@ function renderSmsList(){
   var send = $('#smsSend');
   send.style.display = (smsDirect && !locked) ? '' : 'none';
   send.textContent = '📩 ارسال به همه بدهکاران (' + faDigits(withPhone) + ')';
+  var rbs = $('#rbSend');
+  rbs.style.display = (rbBotReady() && !locked && rbLinked > 0) ? '' : 'none';
+  rbs.textContent = '💬 ارسال روبیکا (' + faDigits(rbLinked) + ' متصل)';
   var sample = $('#smsSample');
   var first = list[0];
   if(first){
@@ -2493,6 +2525,191 @@ function bindSms(){
   });
 }
 
+/* ============================================================
+   روبیکا
+   ۱) اشتراک‌گذاری (همه‌جا، بدون تنظیم): متن پیام را با برگه اشتراک‌گذاری گوشی می‌فرستد؛ کاربر روبیکا و مخاطب را انتخاب می‌کند.
+   ۲) ربات روبیکا (فقط داخل اپ): ارسال خودکار با Bot API رسمی (https://rubika.ir/botapi). روبیکا فقط با chat_id
+      پیام می‌فرستد و chat_id وقتی ساخته می‌شود که ساکن خودش با ربات شروع کند؛ پس هر واحد یک «کد اتصال» ۵ رقمی
+      دارد: ساکن کد را برای ربات می‌فرستد و برنامه (با getUpdates) واحد او را به chat_id وصل می‌کند.
+   توکن ربات جدا از اطلاعات ساختمان نگه‌داری می‌شود و در فایل پشتیبان نمی‌آید.
+   ============================================================ */
+var RB_KEY = 'apartment_rubika_v1';
+var RB_API = 'https://botapi.rubika.ir/v3/';
+function rbCfg(){
+  try{ var v = JSON.parse(localStorage.getItem(RB_KEY)); return (v && typeof v === 'object') ? v : {}; }catch(e){ return {}; }
+}
+function rbSaveCfg(c){ try{ localStorage.setItem(RB_KEY, JSON.stringify(c)); }catch(e){} }
+function rbBotReady(){ return IS_NATIVE && !!rbCfg().token; }
+function rbMap(m){ m.rb = m.rb || {}; return m.rb; }
+/* پاسخ‌ها به شکل {status:'OK', data:{...}} یا مستقیم خود داده می‌آیند؛ هر دو پذیرفته می‌شود. */
+function rbCall(method, body){
+  var cfg = rbCfg();
+  if(!cfg.token) return Promise.reject(new Error('NO_TOKEN'));
+  return fetch(RB_API + encodeURIComponent(cfg.token) + '/' + method, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body || {})
+  }).then(function(r){
+    return r.json().catch(function(){ throw new Error('BAD_RESPONSE'); });
+  }).then(function(j){
+    if(j && j.status && String(j.status) !== 'OK') throw new Error(String(j.status));
+    return (j && j.data) ? j.data : (j || {});
+  });
+}
+function rbErrText(e){
+  var m = String((e && e.message) || e || '');
+  if(m === 'NO_TOKEN') return 'توکن ربات وارد نشده است';
+  if(/INVALID_ACCESS|INVALID_TOKEN|UNAUTHOR/i.test(m)) return 'توکن ربات درست نیست';
+  if(/Failed to fetch|NetworkError|Load failed|timeout/i.test(m)) return 'اینترنت یا روبیکا در دسترس نیست';
+  return 'خطای روبیکا: ' + m;
+}
+function newRbCode(){
+  var used = {}; db.units.forEach(function(u){ if(u.rubikaCode) used[u.rubikaCode] = 1; });
+  for(var i = 0; i < 200; i++){
+    var v;
+    try{ v = 10000 + (window.crypto.getRandomValues(new Uint32Array(1))[0] % 90000); }catch(e){ v = 10000 + Math.floor(Math.random() * 90000); }
+    v = String(v);
+    if(!used[v]) return v;
+  }
+  return String(10000 + Math.floor(Math.random() * 90000));
+}
+function shareText(text){
+  var sh = plugin('Share');
+  if(IS_NATIVE && sh && sh.share){
+    sh.share({text:text, dialogTitle:'ارسال با روبیکا یا برنامه دیگر'}).catch(function(){});
+    return;
+  }
+  if(navigator.share){ navigator.share({text:text}).catch(function(){}); return; }
+  var done = function(){ toast('متن کپی شد؛ آن را در روبیکا بچسبانید'); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(function(){ toast('کپی ممکن نشد'); }); }
+  else toast('اشتراک‌گذاری در این مرورگر ممکن نیست');
+}
+function rbHandleOne(uid){
+  if(isLocked()) return;
+  var key = currentKey();
+  var it = smsRecipients(key).filter(function(x){ return x.u.id === uid; })[0];
+  if(!it) return;
+  if(rbBotReady() && it.u.rubika){
+    rbCall('sendMessage', {chat_id:it.u.rubika, text:it.text}).then(function(){
+      rbMap(monthData(key, true))[uid] = Date.now(); save(); renderSmsList(); applyLock();
+      toast('پیام روبیکا برای ' + it.u.name + ' ارسال شد ✅');
+    }).catch(function(e){ toast(rbErrText(e)); });
+  } else {
+    shareText(it.text);
+  }
+}
+function rbSendAll(){
+  if(!rbBotReady() || isLocked()) return;
+  var key = currentKey();
+  var list = smsRecipients(key).filter(function(x){ return x.u.rubika; });
+  if(!list.length){ toast('هیچ واحد بدهکاری به روبیکا وصل نیست'); return; }
+  if(!confirm('پیام روبیکا برای ' + faDigits(list.length) + ' واحد بدهکار متصل ارسال شود؟')) return;
+  var okN = 0, failN = 0, lastErr = null, chain = Promise.resolve();
+  list.forEach(function(it){
+    chain = chain.then(function(){
+      return rbCall('sendMessage', {chat_id:it.u.rubika, text:it.text}).then(function(){
+        okN++; rbMap(monthData(key, true))[it.u.id] = Date.now();
+      }).catch(function(e){ failN++; lastErr = e; });
+    });
+  });
+  chain.then(function(){
+    save(); renderSmsList(); applyLock();
+    var skipped = smsRecipients(key).filter(function(x){ return !x.u.rubika; }).length;
+    toast(faDigits(okN) + ' پیام روبیکا ارسال شد' + (failN ? ' | ' + faDigits(failN) + ' ناموفق (' + rbErrText(lastErr) + ')' : '') +
+      (skipped ? ' | ' + faDigits(skipped) + ' واحد متصل نیست' : ''));
+  });
+}
+/* دریافت پیام‌های جدید ربات و وصل کردن هر واحد با «کد اتصال»اش */
+function rbPoll(){
+  var cfg = rbCfg(), acks = [], linked = 0;
+  var req = {limit:100};
+  if(cfg.offset) req.offset_id = cfg.offset;
+  return rbCall('getUpdates', req).then(function(data){
+    var ups = (data && data.updates) || [];
+    ups.forEach(function(up){
+      var msg = up && up.new_message;
+      if(!up || up.type !== 'NewMessage' || !msg || !up.chat_id) return;
+      if(msg.sender_type && String(msg.sender_type) !== 'User') return;
+      var digits = enDigits(String(msg.text || '')).replace(/\D/g, '');
+      if(digits.length !== 5) return;
+      var u = db.units.filter(function(x){ return x.rubikaCode === digits; })[0];
+      if(!u) return;
+      u.rubika = String(up.chat_id); linked++;
+      acks.push({chat:String(up.chat_id), unit:u});
+    });
+    if(data && data.next_offset_id){ var c2 = rbCfg(); c2.offset = String(data.next_offset_id); rbSaveCfg(c2); }
+    if(linked){ save(); renderRubika(); renderSmsList(); applyLock(); }
+    return Promise.all(acks.map(function(a){
+      return rbCall('sendMessage', {chat_id:a.chat, text:'✅ ' + a.unit.name + ' به پیام‌های شارژ ' + (db.building || 'ساختمان') + ' وصل شد.'}).catch(function(){});
+    })).then(function(){ return {total:ups.length, linked:linked}; });
+  });
+}
+function rbInviteText(u){
+  var cfg = rbCfg(), where = cfg.share || (cfg.username ? '@' + cfg.username : 'ربات ساختمان');
+  return 'سلام ' + u.name + '،\nبرای دریافت پیام‌های شارژ ' + (db.building || 'ساختمان') + ' در روبیکا:\n۱) ' + where +
+    ' را باز کنید\n۲) Start بزنید\n۳) این کد را برای ربات بفرستید: ' + faDigits(u.rubikaCode);
+}
+function renderRubika(){
+  var card = $('#rbCard');
+  if(!card) return;
+  if(!IS_NATIVE){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  var changed = false;
+  db.units.forEach(function(u){ if(!u.rubikaCode){ u.rubikaCode = newRbCode(); changed = true; } });
+  if(changed) save();
+  var cfg = rbCfg(), tok = $('#rbToken');
+  if(tok && document.activeElement !== tok) tok.value = cfg.token || '';
+  var html = '', nl = 0;
+  db.units.forEach(function(u){
+    var on = !!u.rubika; if(on) nl++;
+    html += '<div class="row"><span class="lbl">' + esc(u.name) + '<small>کد ' + faDigits(u.rubikaCode) + '</small></span>' +
+      '<span class="grow" style="text-align:end">' + (on ? '<span class="chip ok">متصل</span>' : '<span class="chip">وصل نیست</span>') + '</span>' +
+      '<button class="btn sec sm" data-rbinvite="' + esc(u.id) + '" title="ارسال دعوت‌نامه اتصال">📤</button>' +
+      (on ? '<button class="btn sec sm" data-rbunlink="' + esc(u.id) + '" title="قطع اتصال">✖</button>' : '') + '</div>';
+  });
+  $('#rbUnits').innerHTML = html;
+  $('#rbTag').textContent = cfg.token ? (faDigits(nl) + ' از ' + faDigits(db.units.length) + ' متصل') : 'بدون ربات';
+  $('#rbNote').textContent = cfg.token
+    ? 'هر ساکن: ربات را باز می‌کند، Start می‌زند و کد واحدش را می‌فرستد؛ سپس اینجا «دریافت پیام‌های جدید» را بزنید. 📤 دعوت‌نامه آماده را می‌فرستد.'
+    : 'هنوز توکن ربات وارد نشده؛ تا آن موقع فقط اشتراک‌گذاری (دکمه 💬) کار می‌کند.';
+}
+function bindRubika(){
+  $('#rbSend').addEventListener('click', rbSendAll);
+  $('#rbToken').addEventListener('change', function(){
+    var c = rbCfg(), v = this.value.trim();
+    if(v !== (c.token || '')){ c = v ? {token:v} : {}; rbSaveCfg(c); }
+    renderRubika(); renderSmsList(); applyLock();
+    toast(v ? 'توکن ذخیره شد' : 'توکن پاک شد');
+  });
+  $('#rbTest').addEventListener('click', function(){
+    rbCall('getMe', {}).then(function(d){
+      var b = (d && d.bot) || d || {};
+      var c = rbCfg(); c.username = b.username || c.username || ''; c.title = b.bot_title || b.name || c.title || ''; c.share = b.share_url || c.share || '';
+      rbSaveCfg(c); renderRubika();
+      toast('ربات وصل است ✅ ' + (c.title || (c.username ? '@' + c.username : '')));
+    }).catch(function(e){ toast(rbErrText(e)); });
+  });
+  $('#rbCheck').addEventListener('click', function(){
+    rbPoll().then(function(r){
+      toast(r.linked ? faDigits(r.linked) + ' واحد به روبیکا وصل شد ✅' : (r.total ? 'پیام تازه‌ای با کد معتبر نبود' : 'پیام جدیدی نیست'));
+    }).catch(function(e){ toast(rbErrText(e)); });
+  });
+  document.addEventListener('click', function(e){
+    var t = e.target.closest ? e.target : null; if(!t) return;
+    var one = t.closest('[data-rbone]');
+    if(one){ rbHandleOne(one.dataset.rbone); return; }
+    var inv = t.closest('[data-rbinvite]');
+    if(inv){
+      var u = db.units.filter(function(x){ return x.id === inv.dataset.rbinvite; })[0];
+      if(u) shareText(rbInviteText(u));
+      return;
+    }
+    var un = t.closest('[data-rbunlink]');
+    if(un && !isLocked()){
+      var w = db.units.filter(function(x){ return x.id === un.dataset.rbunlink; })[0];
+      if(w && confirm('اتصال ' + w.name + ' به روبیکا قطع شود؟')){ w.rubika = ''; save(); renderRubika(); renderSmsList(); applyLock(); }
+    }
+  });
+}
+
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme', t);
   $('#themeBtn').textContent = (t === 'dark') ? '☀️' : '🌙';
@@ -2503,7 +2720,7 @@ function boot(){
   var t = todayJalali();
   state.year = t.jy; state.month = t.jm;
   bindChrome(); bindAmounts(); bindUnits(); bindPrint(); bindBackup(); bindInstall();
-  bindAutoBackup(); bindLicense(); bindSms();
+  bindAutoBackup(); bindLicense(); bindSms(); bindRubika();
   if(runAutoBackup(false)){
     renderAutoBackup();
     toast('پشتیبان خودکار ماهانه گرفته شد');
